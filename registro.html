@@ -3,179 +3,150 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Regístrate - App de Alquiler</title>
+    <title>Registrate</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .container { background: white; border-radius: 15px; padding: 40px; max-width: 500px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
-        h1 { color: #333; margin-bottom: 10px; font-size: 24px; }
-        .subtitle { color: #666; font-size: 14px; margin-bottom: 30px; }
+        .container { background: white; border-radius: 15px; padding: 40px; max-width: 500px; width: 100%; }
+        h1 { color: #333; margin-bottom: 10px; }
+        p { color: #666; margin-bottom: 20px; }
         .form-group { margin-bottom: 15px; }
-        label { display: block; color: #333; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
-        input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; font-family: inherit; transition: border 0.3s; }
-        input:focus, select:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
-        button { width: 100%; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: transform 0.2s; margin-top: 10px; }
-        button:hover { transform: scale(1.02); }
-        button:active { transform: scale(0.98); }
-        .success { background: white; color: #667eea; border: 2px solid #667eea; margin-top: 0; cursor: default; }
-        .success:hover { transform: none; }
-        .alert { padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 13px; }
-        .alert.info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
-        .alert.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-        .alert.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .form-section { margin-bottom: 25px; }
-        .price-tag { background: #f8f9fa; padding: 10px; border-radius: 6px; margin-top: 10px; font-size: 13px; color: #666; }
-        .loader { display: none; width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3); border-top: 3px solid white; border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .btn-group { display: flex; gap: 10px; }
-        .btn-group button { flex: 1; }
+        label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 5px; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
+        input:focus, select:focus { outline: none; border-color: #667eea; }
+        button { width: 100%; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; margin-top: 10px; }
+        button:hover { opacity: 0.9; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .success { display: none; background: #d4edda; color: #155724; padding: 20px; border-radius: 8px; text-align: center; }
+        .success h2 { margin-bottom: 10px; }
+        .alert { padding: 10px; background: #d1ecf1; color: #0c5460; border-radius: 6px; margin-bottom: 15px; font-size: 12px; }
+        .error { padding: 10px; background: #f8d7da; color: #721c24; border-radius: 6px; margin-bottom: 15px; font-size: 12px; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>🎉 ¡Bienvenido!</h1>
-        <p class="subtitle">Regístrate en segundos y accede al servicio</p>
+        <p>Regístrate en 30 segundos</p>
 
-        <div id="formulario">
-            <div class="alert info">
-                ✅ <strong>Rápido y seguro</strong> — Solo necesitamos tu nombre y teléfono
-            </div>
-
-            <div class="form-section">
-                <div class="form-group">
-                    <label>Tu nombre completo *</label>
-                    <input type="text" id="nombre" placeholder="Juan Pérez" required>
-                </div>
-
-                <div class="form-group">
-                    <label>Tu teléfono WhatsApp *</label>
-                    <input type="tel" id="telefono" placeholder="+51 999 999 999" required>
-                </div>
-
-                <div class="form-group">
-                    <label>Selecciona la app *</label>
-                    <select id="app" required>
-                        <option value="">-- Elige la app --</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label>Tu correo (opcional)</label>
-                    <input type="email" id="email" placeholder="tu@email.com">
-                </div>
-
-                <div class="price-tag" id="precio-tag">
-                    💰 Precio: S/ 10/mes
-                </div>
-            </div>
-
-            <button onclick="registrar()" id="btn-registrar">Registrarme Ahora</button>
+        <div class="alert">
+            ✅ Solo necesitamos tu nombre y teléfono WhatsApp
         </div>
 
-        <div id="exito" style="display: none;">
-            <div class="alert success">
-                ✅ <strong>¡Registrado exitosamente!</strong>
+        <div id="error-msg" class="error" style="display: none;"></div>
+
+        <div id="form">
+            <div class="form-group">
+                <label>Tu nombre</label>
+                <input type="text" id="nombre" placeholder="Juan Pérez" required>
             </div>
-            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 20px 0;">
-                <p style="font-size: 13px; color: #666; margin-bottom: 10px;">
-                    <strong>Próximos pasos:</strong>
-                </p>
-                <ol style="font-size: 13px; color: #666; margin-left: 20px; line-height: 1.8;">
-                    <li>Enviaremos tu código a WhatsApp</li>
-                    <li>Espera el mensaje con tu código de acceso</li>
-                    <li>Usa el código para acceder a la app</li>
-                    <li>¡Listo! Ya puedes usar el servicio</li>
-                </ol>
+
+            <div class="form-group">
+                <label>Tu teléfono WhatsApp</label>
+                <input type="tel" id="telefono" placeholder="+51 999 999 999" required>
             </div>
-            <p style="font-size: 12px; color: #666; text-align: center; margin-top: 20px;">
-                El administrador se pondrá en contacto contigo en los próximos minutos.
-            </p>
-            <button onclick="location.reload()" style="background: #6c757d;">Registrar otro cliente</button>
+
+            <div class="form-group">
+                <label>¿Cuál app quieres?</label>
+                <select id="app" required>
+                    <option value="">--Selecciona--</option>
+                </select>
+            </div>
+
+            <button id="btn-registrar" onclick="registrar()">Registrarme</button>
+        </div>
+
+        <div class="success" id="success">
+            <h2>✅ ¡Registrado!</h2>
+            <p>El administrador te contactará pronto con tu código de acceso.</p>
         </div>
     </div>
 
     <script>
-        let apps = [];
-        let clientesRegistrados = [];
+        const SUPABASE_URL = 'https://kzvtzhmiyxkspfyeglqk.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt6dnR6aG1peXhrc3BmeWVnbHFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2Nzc2NDQsImV4cCI6MjA5MzI1MzY0NH0.b5DhGBJm6KV5_xrWHhKwJwKVkqPBhKVr3zN5bU8vPfA';
+        
+        const { createClient } = window.supabase;
+        const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // Cargar datos compartidos
-        function cargarDatos() {
-            const datosCompartidos = localStorage.getItem('appsCompartidas');
-            if (datosCompartidos) {
-                apps = JSON.parse(datosCompartidos);
-                renderizarApps();
-            } else {
-                // Datos por defecto si no hay en localStorage
-                apps = [
-                    { id: 1, nombre: 'App 1', precio: 10, correo: 'app1@email.com' },
-                    { id: 2, nombre: 'App 2', precio: 10, correo: 'app2@email.com' }
-                ];
-                renderizarApps();
+        let apps = [];
+
+        async function cargarApps() {
+            try {
+                const { data, error } = await supabase
+                    .from('apps')
+                    .select('*');
+                
+                if (error) throw error;
+                
+                if (data && data.length > 0) {
+                    apps = data;
+                } else {
+                    apps = JSON.parse(localStorage.getItem('apps')) || [];
+                }
+            } catch (err) {
+                console.log('Usando localStorage');
+                apps = JSON.parse(localStorage.getItem('apps')) || [];
             }
 
-            clientesRegistrados = JSON.parse(localStorage.getItem('clientesRegistrados')) || [];
-        }
-
-        function renderizarApps() {
             const select = document.getElementById('app');
-            select.innerHTML = '<option value="">-- Elige la app --</option>' + apps.map(a => 
-                `<option value="${a.id}" data-precio="${a.precio}">${a.nombre}</option>`
-            ).join('');
-
-            select.addEventListener('change', (e) => {
-                const app = apps.find(a => a.id == e.target.value);
-                if (app) {
-                    document.getElementById('precio-tag').textContent = `💰 Precio: S/ ${app.precio}/mes`;
-                }
-            });
+            if (apps.length === 0) {
+                select.innerHTML = '<option value="">Sin apps disponibles</option>';
+            } else {
+                select.innerHTML = '<option value="">--Selecciona--</option>' + 
+                    apps.map(a => `<option value="${a.id}|${a.nombre}|${a.precio}">${a.nombre} (S/ ${a.precio}/mes)</option>`).join('');
+            }
         }
 
-        function registrar() {
+        async function registrar() {
             const nombre = document.getElementById('nombre').value.trim();
             const telefono = document.getElementById('telefono').value.trim();
-            const appId = document.getElementById('app').value;
-            const email = document.getElementById('email').value.trim();
+            const appSeleccionada = document.getElementById('app').value;
+            const errorMsg = document.getElementById('error-msg');
 
-            if (!nombre || !telefono || !appId) {
-                alert('⚠️ Completa todos los campos requeridos (*)')
+            errorMsg.style.display = 'none';
+
+            if (!nombre || !telefono || !appSeleccionada) {
+                errorMsg.textContent = '⚠️ Completa todos los campos';
+                errorMsg.style.display = 'block';
                 return;
             }
 
-            const app = apps.find(a => a.id == appId);
-            const cliente = {
-                id: Date.now(),
-                nombre,
-                telefono,
-                email,
-                appId,
-                appNombre: app.nombre,
-                appCorreo: app.correo,
-                tipo: 'whatsapp',
-                estado: 'pendiente',
-                fechaRegistro: new Date().toISOString(),
-                requiereCodeigo: true
-            };
+            const [appId, appNombre, appPrecio] = appSeleccionada.split('|');
 
-            clientesRegistrados.push(cliente);
-            localStorage.setItem('clientesRegistrados', JSON.stringify(clientesRegistrados));
+            try {
+                const btn = document.getElementById('btn-registrar');
+                btn.disabled = true;
+                btn.textContent = 'Registrando...';
 
-            // Mostrar éxito
-            document.getElementById('formulario').style.display = 'none';
-            document.getElementById('exito').style.display = 'block';
+                const { data, error } = await supabase
+                    .from('clientes')
+                    .insert([{
+                        nombre,
+                        telefono,
+                        app_id: parseInt(appId),
+                        app_nombre: appNombre,
+                        app_precio: parseInt(appPrecio),
+                        wa_link: `https://wa.me/${telefono.replace(/[^0-9]/g, '')}`,
+                        fecha_registro: new Date().toISOString()
+                    }]);
 
-            // Sincronizar con app principal
-            sincronizarConApp();
+                if (error) throw error;
+
+                document.getElementById('form').style.display = 'none';
+                document.getElementById('success').style.display = 'block';
+
+                console.log('Cliente registrado:', data);
+            } catch (err) {
+                console.error('Error:', err);
+                errorMsg.textContent = '❌ Error al registrar. Intenta de nuevo.';
+                errorMsg.style.display = 'block';
+                document.getElementById('btn-registrar').disabled = false;
+                document.getElementById('btn-registrar').textContent = 'Registrarme';
+            }
         }
 
-        function sincronizarConApp() {
-            // Esto notificaría a la app principal que hay nuevos registros
-            // En una versión real, usarías un servidor
-            const evento = new CustomEvent('nuevoCliente', { detail: clientesRegistrados });
-            window.dispatchEvent(evento);
-        }
-
-        // Cargar al iniciar
-        window.addEventListener('DOMContentLoaded', cargarDatos);
+        cargarApps();
     </script>
 </body>
 </html>
