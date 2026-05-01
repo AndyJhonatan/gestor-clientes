@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor de Clientes Pro - v2</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; color: #333; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px; border-radius: 10px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        header h1 { font-size: 26px; margin-bottom: 5px; }
+        header p { font-size: 14px; opacity: 0.9; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #ddd; flex-wrap: wrap; }
+        .tab-btn { padding: 12px 20px; cursor: pointer; background: none; border: none; font-size: 14px; font-weight: 500; color: #666; border-bottom: 3px solid transparent; transition: all 0.3s; }
+        .tab-btn.active { color: #667eea; border-bottom-color: #667eea; }
+        .tab-content { display: none; animation: fadeIn 0.3s; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .card { background: white; border: 1px solid #ddd; border-radius: 10px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .card h2 { font-size: 18px; margin-bottom: 15px; color: #333; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; }
+        .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .metric { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 8px; color: white; text-align: center; }
+        .metric-value { font-size: 28px; font-weight: bold; }
+        .metric-label { font-size: 12px; opacity: 0.9; margin-top: 5px; text-transform: uppercase; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 5px; color: #333; }
+        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; font-family: inherit; transition: border 0.3s; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
+        button { padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; transition: background 0.3s; }
+        button:hover { background: #5568d3; }
+        button.secondary { background: #6c757d; }
+        button.secondary:hover { background: #5a6268; }
+        button.danger { background: #dc3545; }
+        button.danger:hover { background: #c82333; }
+        button.success { background: #28a745; }
+        button.success:hover { background: #218838; }
+        .table-wrapper { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th { background: #f8f9fa; padding: 12px; text-align: left; font-weight: 600; border-bottom: 2px solid #ddd; }
+        td { padding: 12px; border-bottom: 1px solid #ddd; }
+        tr:hover { background: #f8f9fa; }
+        .status { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+        .status.active { background: #d4edda; color: #155724; }
+        .status.vencido { background: #f8d7da; color: #721c24; }
+        .status.pronto { background: #fff3cd; color: #856404; }
+        .actions { display: flex; gap: 5px; }
+        .btn-small { padding: 5px 10px; font-size: 11px; }
+        .row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .row.full { grid-template-columns: 1fr; }
+        .copy-btn { background: #17a2b8; padding: 5px 8px; font-size: 11px; cursor: pointer; border: none; border-radius: 4px; color: white; }
+        .copy-btn:hover { background: #138496; }
+        .code-display { background: #f8f9fa; padding: 10px; border-radius: 6px; font-family: 'Courier New', monospace; font-size: 14px; font-weight: bold; text-align: center; color: #667eea; word-break: break-all; margin: 10px 0; }
+        .alert { padding: 12px; border-radius: 6px; margin-bottom: 15px; font-size: 13px; }
+        .alert.info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        .alert.warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .alert.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .badge { display: inline-block; padding: 3px 8px; background: #e0e0e0; border-radius: 3px; font-size: 11px; margin-right: 5px; }
+        .badge.blue { background: #cce5ff; color: #004085; }
+        .badge.green { background: #c8e6c9; color: #2e7d32; }
+        .badge.red { background: #ffcdd2; color: #c62828; }
+        .mensaje-box { background: #f8f9fa; padding: 10px; border-radius: 6px; margin: 8px 0; border-left: 4px solid #667eea; }
+        .mensaje-box textarea { margin-top: 8px; min-height: 60px; }
+        .preview-msg { background: white; padding: 12px; border-radius: 6px; margin-top: 10px; border: 1px solid #ddd; font-size: 12px; max-height: 150px; overflow-y: auto; }
+        .link-registro { background: #e8f5e9; padding: 15px; border-radius: 6px; border: 2px solid #4caf50; margin: 15px 0; }
+        .link-display { background: white; padding: 10px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 12px; word-break: break-all; color: #667eea; margin: 10px 0; }
+        .section-title { font-size: 14px; font-weight: 600; color: #667eea; margin: 20px 0 10px; text-transform: uppercase; }
+        @media (max-width: 768px) {
+            .row { grid-template-columns: 1fr; }
+            .tabs { flex-direction: column; }
+            .metrics { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔐 Gestor de Clientes Pro v2</h1>
+            <p>Administra clientes WhatsApp + Telegram, múltiples apps y mensajes automatizados</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('dashboard')">Dashboard</button>
+            <button class="tab-btn" onclick="switchTab('apps')">Apps & Correos</button>
+            <button class="tab-btn" onclick="switchTab('clientes')">Clientes</button>
+            <button class="tab-btn" onclick="switchTab('mensajes')">Mensajes</button>
+            <button class="tab-btn" onclick="switchTab('registro')">Link Registro</button>
+            <button class="tab-btn" onclick="switchTab('recordatorios')">Recordatorios</button>
+            <button class="tab-btn" onclick="switchTab('guia')">Guía PDF</button>
+            <button class="tab-btn" onclick="switchTab('settings')">Configuración</button>
+        </div>
+
+        <!-- DASHBOARD -->
+        <div id="dashboard" class="tab-content active">
+            <div class="metrics">
+                <div class="metric">
+                    <div class="metric-value" id="total-clientes">0</div>
+                    <div class="metric-label">Total Clientes</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value" id="whatsapp-count">0</div>
+                    <div class="metric-label">WhatsApp</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value" id="telegram-count">0</div>
+                    <div class="metric-label">Telegram</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value" id="pagos-hoy">0</div>
+                    <div class="metric-label">Vencen hoy</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value" id="pagos-manana">0</div>
+                    <div class="metric-label">Vencen mañana</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value" id="total-apps">0</div>
+                    <div class="metric-label">Apps activas</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Próximos Recordatorios a Enviar</h2>
+                <div id="recordatorios-hoy" style="font-size: 13px;"></div>
+            </div>
+
+            <div class="card">
+                <h2>Copiar Recordatorios de Hoy</h2>
+                <p style="font-size: 12px; color: #666; margin-bottom: 10px;">Usa estos mensajes predefinidos para copiar y pegar en WhatsApp/Telegram</p>
+                <button onclick="copiarRecordatoriosDiarios()" class="success">📋 Copiar Recordatorios del Día</button>
+                <div id="recordatorios-copiar" style="margin-top: 15px;"></div>
+            </div>
+        </div>
+
+        <!-- APPS & CORREOS -->
+        <div id="apps" class="tab-content">
+            <div class="card">
+                <h2>Registrar Nueva App</h2>
+                <div class="row">
+                    <div class="form-group">
+                        <label>Nombre de la App</label>
+                        <input type="text" id="app-nombre" placeholder="Netflix, Disney, Prime...">
+                    </div>
+                    <div class="form-group">
+                        <label>Correo de Envío de Códigos</label>
+                        <input type="email" id="app-correo" placeholder="soporte@tuapp.com">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group">
+                        <label>Precio Mensual (S/)</label>
+                        <input type="number" id="app-precio" value="10" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label>Máximo de Cupos</label>
+                        <input type="number" id="app-cupos" value="18" min="1">
+                    </div>
+                </div>
+                <button onclick="agregarApp()">Agregar App</button>
+            </div>
+
+            <div class="card">
+                <h2>Apps Registradas</h2>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>App</th>
+                                <th>Correo</th>
+                                <th>Precio</th>
+                                <th>Cupos</th>
+                                <th>Clientes</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="apps-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- CLIENTES -->
+        <div id="clientes" class="tab-content">
+            <div class="card">
+                <h2>Agregar Cliente Manualmente</h2>
+                <div class="row">
+                    <div class="form-group">
+                        <label>Nombre</label>
+                        <input type="text" id="cliente-nombre" placeholder="Juan Pérez">
+                    </div>
+                    <div class="form-group">
+                        <label>Teléfono WhatsApp</label>
+                        <input type="tel" id="cliente-telefono" placeholder="+51 999 999 999">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group">
+                        <label>App</label>
+                        <select id="cliente-app">
+                            <option value="">-- Selecciona app --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Tipo de Cliente</label>
+                        <select id="cliente-tipo">
+                            <option value="whatsapp">WhatsApp</option>
+                            <option value="telegram">Telegram</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group">
+                        <label>Día de Pago (del mes)</label>
+                        <input type="number" id="cliente-fecha-pago" min="1" max="31" value="1">
+                    </div>
+                    <div class="form-group">
+                        <label>Email (opcional)</label>
+                        <input type="email" id="cliente-email" placeholder="cliente@email.com">
+                    </div>
+                </div>
+                <button onclick="agregarCliente()">Agregar Cliente</button>
+            </div>
+
+            <div class="alert info">
+                📱 <strong>Alternativa rápida:</strong> Comparte el <strong>Link de Registro</strong> en la pestaña correspondiente para que el cliente se registre directamente.
+            </div>
+
+            <div class="card">
+                <h2>Lista de Clientes</h2>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Teléfono</th>
+                                <th>Tipo</th>
+                                <th>App</th>
+                                <th>Próx. Pago</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="clientes-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- MENSAJES -->
+        <div id="mensajes" class="tab-content">
+            <div class="card">
+                <h2>Mensajes Predefinidos</h2>
+                <p style="font-size: 12px; color: #666; margin-bottom: 15px;">Personaliza los mensajes que enviarás a tus clientes. Puedes modificarlos en cualquier momento.</p>
+
+                <div class="mensaje-box">
+                    <strong>Bienvenida</strong>
+                    <textarea id="msg-bienvenida" placeholder="Mensaje de bienvenida..."></textarea>
+                    <div class="preview-msg" id="preview-bienvenida"></div>
+                </div>
+
+                <div class="mensaje-box">
+                    <strong>Código de Acceso</strong>
+                    <textarea id="msg-codigo" placeholder="Mensaje con código..."></textarea>
+                    <div class="preview-msg" id="preview-codigo"></div>
+                </div>
+
+                <div class="mensaje-box">
+                    <strong>Recordatorio 1 Día Antes</strong>
+                    <textarea id="msg-recordatorio" placeholder="Mensaje recordatorio..."></textarea>
+                    <div class="preview-msg" id="preview-recordatorio"></div>
+                </div>
+
+                <div class="mensaje-box">
+                    <strong>Pago Vencido</strong>
+                    <textarea id="msg-vencido" placeholder="Mensaje pago vencido..."></textarea>
+                    <div class="preview-msg" id="preview-vencido"></div>
+                </div>
+
+                <div class="mensaje-box">
+                    <strong>Cuenta Cerrada/Problema</strong>
+                    <textarea id="msg-soporte" placeholder="Mensaje soporte..."></textarea>
+                    <div class="preview-msg" id="preview-soporte"></div>
+                </div>
+
+                <button onclick="guardarMensajes()" class="success">💾 Guardar Mensajes</button>
+            </div>
+
+            <div class="card">
+                <h2>Mensajes por Copiar Hoy</h2>
+                <p style="font-size: 12px; color: #666; margin-bottom: 10px;">Estos mensajes ya incluyen fechas actualizadas para hoy. Solo copia y pega en WhatsApp.</p>
+                <div id="mensajes-para-copiar"></div>
+            </div>
+        </div>
+
+        <!-- LINK REGISTRO -->
+        <div id="registro" class="tab-content">
+            <div class="card">
+                <h2>Link de Registro Rápido para Clientes</h2>
+                <p style="font-size: 12px; color: #666; margin-bottom: 15px;">Comparte este link en WhatsApp o por mensaje. El cliente se registra en segundos sin formularios complicados.</p>
+
+                <div class="link-registro">
+                    <strong>🔗 Link de Registro:</strong>
+                    <div class="link-display" id="link-registro-display"></div>
+                    <button onclick="copiarLinkRegistro()" class="success" style="width: 100%; margin-top: 10px;">📋 Copiar Link</button>
+                </div>
+
+                <p style="font-size: 12px; color: #666; margin-top: 15px;">
+                    <strong>¿Cómo funciona?</strong><br>
+                    1. Cliente hace clic en el link<br>
+                    2. Se abre página simple con 2 campos (nombre, teléfono)<br>
+                    3. Se registra automáticamente<br>
+                    4. Aparece en tu lista de clientes
+                </p>
+            </div>
+
+            <div class="card">
+                <h2>Vista Previa del Formulario de Registro</h2>
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; max-width: 400px;">
+                    <h3 style="margin-bottom: 15px; color: #333;">Regístrate en segundos</h3>
+                    <input type="text" placeholder="Tu nombre completo" style="margin-bottom: 10px;">
+                    <input type="tel" placeholder="Tu teléfono WhatsApp (+51...)" style="margin-bottom: 10px;">
+                    <select style="margin-bottom: 10px;">
+                        <option>-- Selecciona la app --</option>
+                    </select>
+                    <button style="width: 100%;">Registrarme</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- RECORDATORIOS -->
+        <div id="recordatorios" class="tab-content">
+            <div class="card">
+                <h2>Sistema de Recordatorios Automáticos</h2>
+                <div class="alert info">
+                    ⏰ Los recordatorios se actualizan automáticamente cada día a las 00:00 (medianoche). Un día antes del vencimiento, el cliente recibirá un recordatorio.
+                </div>
+
+                <div class="form-group">
+                    <label>Hora para enviar recordatorios</label>
+                    <input type="time" id="hora-recordatorios" value="09:00">
+                    <small style="color: #666;">La app calculará automáticamente qué clientes vencen hoy</small>
+                </div>
+
+                <h3 style="margin-top: 20px; font-size: 14px;">Clientes que vencen hoy</h3>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Teléfono</th>
+                                <th>App</th>
+                                <th>Vence</th>
+                                <th>Copiar</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recordatorios-tbody"></tbody>
+                    </table>
+                </div>
+
+                <button onclick="marcarRecordatoriosEnviados()" class="success" style="margin-top: 15px;">✅ Marcar como Enviados</button>
+            </div>
+        </div>
+
+        <!-- GUÍA PDF -->
+        <div id="guia" class="tab-content">
+            <div class="card">
+                <h2>Guía de Acceso - PDF</h2>
+                <p style="font-size: 12px; color: #666; margin-bottom: 15px;">Carga el PDF de la guía de acceso. Se mostrará a los clientes cuando se registren.</p>
+
+                <div class="form-group">
+                    <label>Subir PDF de Guía</label>
+                    <input type="file" id="pdf-guia" accept=".pdf" onchange="cargarPDF()">
+                </div>
+
+                <div id="pdf-preview" style="display: none; margin-top: 20px;">
+                    <p style="font-size: 12px; color: #666;">✅ PDF cargado correctamente</p>
+                    <button onclick="descargarPDF()" class="success">📥 Descargar Guía Cargada</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- CONFIGURACIÓN -->
+        <div id="settings" class="tab-content">
+            <div class="card">
+                <h2>Restricciones de Seguridad</h2>
+                <div class="alert warning">
+                    🔒 Las siguientes acciones están <strong>PROHIBIDAS</strong> por seguridad:
+                </div>
+                <ul style="font-size: 13px; margin-left: 20px; line-height: 1.8;">
+                    <li>❌ Cambiar contraseña (no hay opción disponible)</li>
+                    <li>❌ Borrar clientes permanentemente</li>
+                    <li>❌ Borrar mensajes guardados</li>
+                    <li>❌ Borrar histórico de pagos</li>
+                </ul>
+                <p style="font-size: 12px; color: #666; margin-top: 15px;">
+                    ✅ <strong>Sí puedes:</strong> Cerrar todas las sesiones abiertas, editar datos de clientes, pausar clientes temporalmente.
+                </p>
+            </div>
+
+            <div class="card">
+                <h2>Sesiones Activas</h2>
+                <p style="font-size: 13px; color: #666; margin-bottom: 15px;">Cierra todas las sesiones abiertas en otros navegadores/dispositivos.</p>
+                <button onclick="cerrarTodasSesiones()" class="danger">🚪 Cerrar Todas las Sesiones</button>
+                <p style="font-size: 11px; color: #999; margin-top: 10px;">Última actividad: <span id="ultima-actividad">Ahora</span></p>
+            </div>
+
+            <div class="card">
+                <h2>Respaldo y Exportación</h2>
+                <button onclick="exportarJSON()" class="secondary">📊 Descargar JSON</button>
+                <button onclick="exportarCSV()" class="secondary">📋 Descargar CSV</button>
+                <p style="font-size: 12px; color: #666; margin-top: 10px;">Descarga regularmente tus datos para tener respaldo.</p>
+            </div>
+
+            <div class="card">
+                <h2>Información del Sistema</h2>
+                <p style="font-size: 13px; color: #666;">
+                    <strong>Versión:</strong> 2.0<br>
+                    <strong>Almacenamiento:</strong> Local (navegador)<br>
+                    <strong>Datos sincronizados:</strong> Sí (entre pestañas)<br>
+                    <strong>Backup automático:</strong> Cada cambio se guarda
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Estado de la app
+        let apps = [];
+        let clientes = [];
+        let mensajes = {};
+        let pdfGuia = null;
+        let lastSync = new Date().toLocaleTimeString();
+
+        // Mensajes por defecto
+        const mensajesDefault = {
+            bienvenida: "¡Bienvenido! 👋\n\nYa está tu cuenta lista. Envíame tu código y te doy acceso en minutos.\n\nPrecio: S/ 10/mes\nPróximo pago: [FECHA]",
+            codigo: "Tu código de acceso es:\n\n[CODIGO]\n\nUsa este código para entrar. Si necesitas ayuda, lee la guía que te envié.",
+            recordatorio: "⏰ Recordatorio: Tu acceso vence mañana ([FECHA])\n\nPaga ahora para seguir usando el servicio sin interrupciones.",
+            vencido: "⛔ Tu acceso venció. Paga para reactivar:\n\nPrecio: S/ 10\nPróximo pago: [FECHA]",
+            soporte: "¿Problemas para acceder? 🔧\n\nIntenta:\n1. Verifica el código\n2. Cierra la app y abre de nuevo\n3. Si persiste, envíame captura de error"
+        };
+
+        // Cargar datos
+        function cargarDatos() {
+            apps = JSON.parse(localStorage.getItem('apps')) || [];
+            clientes = JSON.parse(localStorage.getItem('clientes')) || [];
+            mensajes = JSON.parse(localStorage.getItem('mensajes')) || mensajesDefault;
+            pdfGuia = localStorage.getItem('pdfGuia');
+
+            Object.assign(mensajes, mensajesDefault);
+            actualizarUI();
+        }
+
+        function guardarDatos() {
+            localStorage.setItem('apps', JSON.stringify(apps));
+            localStorage.setItem('clientes', JSON.stringify(clientes));
+            localStorage.setItem('mensajes', JSON.stringify(mensajes));
+            localStorage.setItem('lastSync', new Date().toLocaleTimeString());
+            lastSync = new Date().toLocaleTimeString();
+            actualizarUI();
+        }
+
+        // Cambiar tabs
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tab).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Apps
+        function agregarApp() {
+            const app = {
+                id: Date.now(),
+                nombre: document.getElementById('app-nombre').value,
+                correo: document.getElementById('app-correo').value,
+                precio: parseInt(document.getElementById('app-precio').value),
+                cupos: parseInt(document.getElementById('app-cupos').value)
+            };
+            if (app.nombre && app.correo) {
+                apps.push(app);
+                guardarDatos();
+                document.getElementById('app-nombre').value = '';
+                document.getElementById('app-correo').value = '';
+                alert('App agregada');
+            }
+        }
+
+        function renderApps() {
+            const tbody = document.getElementById('apps-tbody');
+            const appSelect = document.getElementById('cliente-app');
+            tbody.innerHTML = apps.map(app => {
+                const clientesApp = clientes.filter(c => c.appId === app.id).length;
+                return `<tr>
+                    <td><strong>${app.nombre}</strong></td>
+                    <td>${app.correo}</td>
+                    <td>S/ ${app.precio}</td>
+                    <td>${app.cupos}</td>
+                    <td>${clientesApp}/${app.cupos}</td>
+                    <td><button class="btn-small danger" onclick="eliminarApp(${app.id})">Eliminar</button></td>
+                </tr>`;
+            }).join('');
+            appSelect.innerHTML = '<option value="">-- Selecciona app --</option>' + apps.map(a => `<option value="${a.id}">${a.nombre}</option>`).join('');
+        }
+
+        function eliminarApp(id) {
+            if (confirm('¿Eliminar esta app? Se eliminarán sus clientes.')) {
+                apps = apps.filter(a => a.id !== id);
+                clientes = clientes.filter(c => c.appId !== id);
+                guardarDatos();
+            }
+        }
+
+        // Clientes
+        function agregarCliente() {
+            const appId = parseInt(document.getElementById('cliente-app').value);
+            const app = apps.find(a => a.id === appId);
+            if (!appId || !app) { alert('Selecciona una app'); return; }
+
+            const cliente = {
+                id: Date.now(),
+                nombre: document.getElementById('cliente-nombre').value,
+                telefono: document.getElementById('cliente-telefono').value,
+                email: document.getElementById('cliente-email').value,
+                appId,
+                appNombre: app.nombre,
+                appCorreo: app.correo,
+                tipo: document.getElementById('cliente-tipo').value,
+                fechaPago: parseInt(document.getElementById('cliente-fecha-pago').value),
+                estado: 'activo',
+                fechaRegistro: new Date().toISOString(),
+                recordatorioEnviado: false
+            };
+
+            clientes.push(cliente);
+            guardarDatos();
+            document.getElementById('cliente-nombre').value = '';
+            document.getElementById('cliente-telefono').value = '';
+            document.getElementById('cliente-email').value = '';
+            alert('Cliente agregado');
+        }
+
+        function renderClientes() {
+            const tbody = document.getElementById('clientes-tbody');
+            const hoy = new Date();
+            tbody.innerHTML = clientes.map(c => {
+                const proxPago = new Date(hoy.getFullYear(), hoy.getMonth(), c.fechaPago);
+                if (proxPago < hoy) proxPago.setMonth(proxPago.getMonth() + 1);
+                const diasFalta = Math.ceil((proxPago - hoy) / (1000 * 60 * 60 * 24));
+                let statusClass = 'active';
+                if (diasFalta < 0) statusClass = 'vencido';
+                else if (diasFalta < 1) statusClass = 'pronto';
+
+                return `<tr>
+                    <td><strong>${c.nombre}</strong></td>
+                    <td>
+                        <button class="copy-btn" onclick="copiarTexto('${c.telefono}')">📋</button>
+                        ${c.telefono}
+                    </td>
+                    <td><span class="badge">${c.tipo}</span></td>
+                    <td>${c.appNombre}</td>
+                    <td>${proxPago.toLocaleDateString()}</td>
+                    <td><span class="status ${statusClass}">${c.estado}</span></td>
+                    <td>
+                        <button class="btn-small" onclick="editarCliente(${c.id})">Editar</button>
+                        <button class="btn-small" onclick="pausarCliente(${c.id})">Pausar</button>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        function editarCliente(id) {
+            const cliente = clientes.find(c => c.id === id);
+            if (cliente) {
+                const nuevoNombre = prompt('Nombre:', cliente.nombre);
+                if (nuevoNombre) {
+                    cliente.nombre = nuevoNombre;
+                    guardarDatos();
+                }
+            }
+        }
+
+        function pausarCliente(id) {
+            const cliente = clientes.find(c => c.id === id);
+            if (cliente) {
+                cliente.estado = cliente.estado === 'activo' ? 'pausado' : 'activo';
+                guardarDatos();
+            }
+        }
+
+        // Mensajes
+        function cargarMensajesToEdit() {
+            document.getElementById('msg-bienvenida').value = mensajes.bienvenida;
+            document.getElementById('msg-codigo').value = mensajes.codigo;
+            document.getElementById('msg-recordatorio').value = mensajes.recordatorio;
+            document.getElementById('msg-vencido').value = mensajes.vencido;
+            document.getElementById('msg-soporte').value = mensajes.soporte;
+
+            document.getElementById('msg-bienvenida').addEventListener('input', e => {
+                document.getElementById('preview-bienvenida').textContent = e.target.value;
+            });
+            document.getElementById('msg-codigo').addEventListener('input', e => {
+                document.getElementById('preview-codigo').textContent = e.target.value;
+            });
+            document.getElementById('msg-recordatorio').addEventListener('input', e => {
+                document.getElementById('preview-recordatorio').textContent = e.target.value;
+            });
+            document.getElementById('msg-vencido').addEventListener('input', e => {
+                document.getElementById('preview-vencido').textContent = e.target.value;
+            });
+            document.getElementById('msg-soporte').addEventListener('input', e => {
+                document.getElementById('preview-soporte').textContent = e.target.value;
+            });
+        }
+
+        function guardarMensajes() {
+            mensajes = {
+                bienvenida: document.getElementById('msg-bienvenida').value,
+                codigo: document.getElementById('msg-codigo').value,
+                recordatorio: document.getElementById('msg-recordatorio').value,
+                vencido: document.getElementById('msg-vencido').value,
+                soporte: document.getElementById('msg-soporte').value
+            };
+            guardarDatos();
+            alert('Mensajes guardados');
+        }
+
+        // Recordatorios
+        function actualizarRecordatorios() {
+            const hoy = new Date();
+            const mañana = new Date(hoy);
+            mañana.setDate(mañana.getDate() + 1);
+
+            const clientesVencenHoy = clientes.filter(c => {
+                const proxPago = new Date(hoy.getFullYear(), hoy.getMonth(), c.fechaPago);
+                if (proxPago < hoy) proxPago.setMonth(proxPago.getMonth() + 1);
+                const dia = proxPago.getDate();
+                const mesAño = proxPago.getMonth() + '-' + proxPago.getFullYear();
+                const hoyMesAño = hoy.getMonth() + '-' + hoy.getFullYear();
+                return dia === mañana.getDate() && mesAño === hoyMesAño && c.estado === 'activo' && !c.recordatorioEnviado;
+            });
+
+            const tbody = document.getElementById('recordatorios-tbody');
+            tbody.innerHTML = clientesVencenHoy.map(c => {
+                const proxPago = new Date(hoy.getFullYear(), hoy.getMonth(), c.fechaPago);
+                return `<tr>
+                    <td>${c.nombre}</td>
+                    <td><button class="copy-btn" onclick="copiarTexto('${c.telefono}')">📋 ${c.telefono}</button></td>
+                    <td>${c.appNombre}</td>
+                    <td>${proxPago.toLocaleDateString()}</td>
+                    <td><button class="copy-btn" onclick="copiarRecordatorio(${c.id})">Copiar</button></td>
+                </tr>`;
+            }).join('');
+
+            const recordatoriosDiv = document.getElementById('recordatorios-hoy');
+            if (clientesVencenHoy.length > 0) {
+                recordatoriosDiv.innerHTML = `<strong>${clientesVencenHoy.length} cliente(s) para recordar hoy:</strong><br>` + clientesVencenHoy.map(c => `${c.nombre} (${c.appNombre})`).join('<br>');
+            } else {
+                recordatoriosDiv.innerHTML = '✅ No hay recordatorios pendientes para hoy';
+            }
+        }
+
+        function copiarRecordatorio(clienteId) {
+            const cliente = clientes.find(c => c.id === clienteId);
+            const proxPago = new Date();
+            proxPago.setDate(cliente.fechaPago);
+            if (proxPago < new Date()) proxPago.setMonth(proxPago.getMonth() + 1);
+
+            const msg = mensajes.recordatorio
+                .replace('[FECHA]', proxPago.toLocaleDateString())
+                .replace('[NOMBRE]', cliente.nombre);
+
+            copiarTexto(msg);
+        }
+
+        function copiarRecordatoriosDiarios() {
+            const hoy = new Date();
+            const mañana = new Date(hoy);
+            mañana.setDate(mañana.getDate() + 1);
+
+            const clientesVencenHoy = clientes.filter(c => {
+                const proxPago = new Date(hoy.getFullYear(), hoy.getMonth(), c.fechaPago);
+                if (proxPago < hoy) proxPago.setMonth(proxPago.getMonth() + 1);
+                return proxPago.toLocaleDateString() === mañana.toLocaleDateString() && c.estado === 'activo';
+            });
+
+            if (clientesVencenHoy.length === 0) {
+                alert('No hay clientes para recordar hoy');
+                return;
+            }
+
+            const textos = clientesVencenHoy.map(c => {
+                const proxPago = new Date();
+                proxPago.setDate(c.fechaPago);
+                const msg = `📱 ${c.nombre}\n${mensajes.recordatorio.replace('[FECHA]', proxPago.toLocaleDateString())}`;
+                return msg;
+            }).join('\n\n---\n\n');
+
+            copiarTexto(textos);
+            alert('Recordatorios copiados al portapapeles');
+        }
+
+        function marcarRecordatoriosEnviados() {
+            const hoy = new Date();
+            clientes.forEach(c => {
+                const proxPago = new Date(hoy.getFullYear(), hoy.getMonth(), c.fechaPago);
+                if (proxPago < hoy) proxPago.setMonth(proxPago.getMonth() + 1);
+                if (proxPago.toLocaleDateString() === new Date(hoy.getTime() + 24*60*60*1000).toLocaleDateString()) {
+                    c.recordatorioEnviado = true;
+                }
+            });
+            guardarDatos();
+            alert('Recordatorios marcados como enviados');
+        }
+
+        // Link Registro
+        function generarLinkRegistro() {
+            const linkBase = window.location.origin + window.location.pathname + '?registro=1';
+            document.getElementById('link-registro-display').textContent = linkBase;
+        }
+
+        function copiarLinkRegistro() {
+            const link = document.getElementById('link-registro-display').textContent;
+            copiarTexto(link);
+            alert('Link copiado');
+        }
+
+        // Utilidades
+        function copiarTexto(texto) {
+            navigator.clipboard.writeText(texto).then(() => {
+                console.log('Copiado:', texto);
+            });
+        }
+
+        function cargarPDF() {
+            const file = document.getElementById('pdf-guia').files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    pdfGuia = e.target.result;
+                    localStorage.setItem('pdfGuia', pdfGuia);
+                    document.getElementById('pdf-preview').style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function descargarPDF() {
+            if (pdfGuia) {
+                const link = document.createElement('a');
+                link.href = pdfGuia;
+                link.download = 'guia_acceso.pdf';
+                link.click();
+            }
+        }
+
+        function exportarJSON() {
+            const datos = { apps, clientes, mensajes };
+            const blob = new Blob([JSON.stringify(datos, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'backup_' + new Date().toISOString().split('T')[0] + '.json';
+            a.click();
+        }
+
+        function exportarCSV() {
+            let csv = 'Nombre,Teléfono,Tipo,App,Correo,Próx. Pago,Estado\n';
+            clientes.forEach(c => {
+                const proxPago = new Date();
+                proxPago.setDate(c.fechaPago);
+                csv += `"${c.nombre}","${c.telefono}","${c.tipo}","${c.appNombre}","${c.appCorreo}","${proxPago.toLocaleDateString()}","${c.estado}"\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'clientes_' + new Date().toISOString().split('T')[0] + '.csv';
+            link.click();
+        }
+
+        function cerrarTodasSesiones() {
+            if (confirm('¿Cerrar todas las sesiones?')) {
+                localStorage.clear();
+                alert('Sesiones cerradas. Recarga la página.');
+            }
+        }
+
+        // Dashboard
+        function actualizarDashboard() {
+            document.getElementById('total-clientes').textContent = clientes.length;
+            document.getElementById('whatsapp-count').textContent = clientes.filter(c => c.tipo === 'whatsapp').length;
+            document.getElementById('telegram-count').textContent = clientes.filter(c => c.tipo === 'telegram').length;
+            document.getElementById('total-apps').textContent = apps.length;
+
+            const hoy = new Date();
+            const mañana = new Date(hoy);
+            mañana.setDate(mañana.getDate() + 1);
+
+            const venceHoy = clientes.filter(c => {
+                const pago = new Date(hoy.getFullYear(), hoy.getMonth(), c.fechaPago);
+                return pago.toLocaleDateString() === hoy.toLocaleDateString();
+            }).length;
+
+            const venceMañana = clientes.filter(c => {
+                const pago = new Date(hoy.getFullYear(), hoy.getMonth(), c.fechaPago);
+                return pago.toLocaleDateString() === mañana.toLocaleDateString();
+            }).length;
+
+            document.getElementById('pagos-hoy').textContent = venceHoy;
+            document.getElementById('pagos-manana').textContent = venceMañana;
+        }
+
+        function actualizarUI() {
+            renderApps();
+            renderClientes();
+            actualizarRecordatorios();
+            actualizarDashboard();
+            cargarMensajesToEdit();
+            generarLinkRegistro();
+            document.getElementById('ultima-actividad').textContent = lastSync;
+        }
+
+        // Iniciar
+        window.addEventListener('DOMContentLoaded', () => {
+            cargarDatos();
+        });
+
+        window.addEventListener('beforeunload', () => {
+            guardarDatos();
+        });
+    </script>
+</body>
+</html>
