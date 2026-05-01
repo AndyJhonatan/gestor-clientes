@@ -4,12 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel Admin - Gestor Clientes</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; }
         .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
         header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px; border-radius: 10px; margin-bottom: 20px; }
         header h1 { font-size: 24px; margin-bottom: 5px; }
+        .status { font-size: 12px; opacity: 0.9; }
+        .status.online { color: #90EE90; }
         .tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
         .tab-btn { padding: 10px 15px; background: #ddd; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: 0.3s; }
         .tab-btn.active { background: #667eea; color: white; }
@@ -20,7 +23,6 @@
         .form-group { margin-bottom: 12px; }
         label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px; color: #333; }
         input, select, textarea { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; font-family: inherit; }
-        input:focus, select:focus, textarea:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
         button { padding: 8px 16px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.3s; }
         button:hover { background: #5568d3; }
         button.danger { background: #dc3545; }
@@ -32,25 +34,17 @@
         .table td { padding: 10px; border-bottom: 1px solid #ddd; }
         .table tr:hover { background: #f9f9f9; }
         .btn-small { padding: 4px 8px; font-size: 11px; margin-right: 3px; }
-        .copy-btn { background: #17a2b8; padding: 4px 8px; font-size: 11px; }
         .wa-link { color: #25d366; font-weight: 600; text-decoration: none; cursor: pointer; }
         .row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .row.full { grid-template-columns: 1fr; }
         .row.triple { grid-template-columns: 1fr 1fr 1fr; }
         .metric { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px; border-radius: 8px; text-align: center; }
         .metric-value { font-size: 24px; font-weight: bold; }
         .metric-label { font-size: 11px; opacity: 0.9; margin-top: 5px; }
         .alert { padding: 12px; border-radius: 6px; margin-bottom: 15px; font-size: 12px; }
-        .alert.success { background: #d4edda; color: #155724; }
         .alert.info { background: #d1ecf1; color: #0c5460; }
-        .app-item { background: #f8f9fa; padding: 12px; border-radius: 6px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
-        .app-info { flex: 1; }
-        .app-info strong { display: block; margin-bottom: 3px; }
-        .app-info small { color: #666; display: block; }
         @media (max-width: 768px) { 
             .row { grid-template-columns: 1fr; }
             .row.triple { grid-template-columns: 1fr; }
-            .tabs { flex-direction: column; }
         }
     </style>
 </head>
@@ -58,7 +52,8 @@
     <div class="container">
         <header>
             <h1>👨‍💼 Panel Admin - Gestor Clientes</h1>
-            <p>Administra tus clientes, apps y configuración sin código</p>
+            <p>Administra tus clientes, apps y configuración</p>
+            <p class="status online">🟢 Conectado a la nube</p>
         </header>
 
         <div class="tabs">
@@ -94,11 +89,6 @@
                     <tbody id="clientes-recientes"></tbody>
                 </table>
             </div>
-
-            <div class="card">
-                <h2>📱 Mis Apps</h2>
-                <div id="apps-lista"></div>
-            </div>
         </div>
 
         <!-- APPS -->
@@ -130,7 +120,12 @@
 
             <div class="card">
                 <h2>📱 Todas Mis Apps</h2>
-                <div id="apps-completa"></div>
+                <table class="table">
+                    <thead>
+                        <tr><th>App</th><th>Correo</th><th>Precio</th><th>Cupos</th><th>Clientes</th><th>Acción</th></tr>
+                    </thead>
+                    <tbody id="apps-tabla"></tbody>
+                </table>
             </div>
         </div>
 
@@ -150,13 +145,7 @@
         <!-- CONFIGURACIÓN -->
         <div id="config" class="content">
             <div class="alert info">
-                ⚙️ Aquí puedes cambiar nombres, precios y otras configuraciones sin tocar código
-            </div>
-
-            <div class="card">
-                <h2>🏷️ Editar Apps</h2>
-                <p style="font-size: 12px; color: #666; margin-bottom: 15px;">Selecciona una app para editar sus datos</p>
-                <div id="editar-apps"></div>
+                ⚙️ Configuración de tu negocio
             </div>
 
             <div class="card">
@@ -171,22 +160,19 @@
                 </div>
                 <button onclick="guardarMensajes()" class="success">💾 Guardar Mensajes</button>
             </div>
-
-            <div class="card">
-                <h2>🗑️ Peligro</h2>
-                <p style="font-size: 12px; color: #666; margin-bottom: 10px;">Estas acciones no se pueden deshacer</p>
-                <button onclick="borrarTodo()" class="danger">Borrar todos los datos</button>
-            </div>
         </div>
     </div>
 
     <script>
-        let apps = JSON.parse(localStorage.getItem('apps')) || [];
-        let clientes = JSON.parse(localStorage.getItem('clientes')) || [];
-        let mensajes = JSON.parse(localStorage.getItem('mensajes')) || {
-            bienvenida: "¡Bienvenido! Aquí está tu código de acceso.",
-            recordatorio: "Recordatorio: Tu acceso vence pronto. [FECHA]"
-        };
+        const SUPABASE_URL = 'https://kzvtzhmiyxkspfyeglqk.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt6dnR6aG1peXhrc3BmeWVnbHFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2Nzc2NDQsImV4cCI6MjA5MzI1MzY0NH0.b5DhGBJm6KV5_xrWHhKwJwKVkqPBhKVr3zN5bU8vPfA';
+        
+        const { createClient } = window.supabase;
+        const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let apps = [];
+        let clientes = [];
+        let mensajes = {};
 
         function tab(name) {
             document.querySelectorAll('.content').forEach(e => e.classList.remove('active'));
@@ -195,108 +181,80 @@
             event.target.classList.add('active');
         }
 
-        function guardar() {
-            localStorage.setItem('apps', JSON.stringify(apps));
-            localStorage.setItem('clientes', JSON.stringify(clientes));
-            localStorage.setItem('mensajes', JSON.stringify(mensajes));
-            actualizar();
+        async function cargarDatos() {
+            try {
+                const { data: appsData, error: appsError } = await supabase.from('apps').select('*');
+                if (appsError) throw appsError;
+                apps = appsData || [];
+
+                const { data: clientesData, error: clientesError } = await supabase.from('clientes').select('*');
+                if (clientesError) throw clientesError;
+                clientes = clientesData || [];
+
+                actualizar();
+            } catch (err) {
+                console.error('Error:', err);
+            }
         }
 
-        function agregarApp() {
+        async function agregarApp() {
             const nombre = document.getElementById('app-nombre').value.trim();
             if (!nombre) {
                 alert('⚠️ Completa el nombre de la app');
                 return;
             }
-            const app = {
-                id: Date.now(),
-                nombre,
-                correo: document.getElementById('app-correo').value,
-                precio: parseInt(document.getElementById('app-precio').value) || 10,
-                cupos: parseInt(document.getElementById('app-cupos').value) || 18
-            };
-            apps.push(app);
-            document.getElementById('app-nombre').value = '';
-            document.getElementById('app-correo').value = '';
-            document.getElementById('app-precio').value = '10';
-            document.getElementById('app-cupos').value = '18';
-            guardar();
-            alert('✅ App agregada');
-        }
 
-        function eliminarApp(id) {
-            if (confirm('¿Eliminar esta app?')) {
-                apps = apps.filter(a => a.id !== id);
-                clientes = clientes.filter(c => c.appId !== id);
-                guardar();
-            }
-        }
+            try {
+                const { data, error } = await supabase
+                    .from('apps')
+                    .insert([{
+                        nombre,
+                        correo: document.getElementById('app-correo').value,
+                        precio: parseInt(document.getElementById('app-precio').value) || 10,
+                        cupos: parseInt(document.getElementById('app-cupos').value) || 18
+                    }]);
 
-        function actualizarApp(id) {
-            const app = apps.find(a => a.id === id);
-            if (!app) return;
-            
-            const nombre = prompt('Nombre:', app.nombre);
-            if (nombre) {
-                app.nombre = nombre;
-                const correo = prompt('Correo:', app.correo);
-                if (correo) app.correo = correo;
-                const precio = prompt('Precio (S/):', app.precio);
-                if (precio) app.precio = parseInt(precio);
-                const cupos = prompt('Cupos:', app.cupos);
-                if (cupos) app.cupos = parseInt(cupos);
-                guardar();
+                if (error) throw error;
+
+                document.getElementById('app-nombre').value = '';
+                document.getElementById('app-correo').value = '';
+                document.getElementById('app-precio').value = '10';
+                document.getElementById('app-cupos').value = '18';
+                
+                alert('✅ App agregada');
+                cargarDatos();
+            } catch (err) {
+                console.error('Error:', err);
+                alert('❌ Error al agregar app');
             }
         }
 
         function renderApps() {
-            const lista = document.getElementById('apps-lista');
-            const completa = document.getElementById('apps-completa');
-            const editar = document.getElementById('editar-apps');
-
-            if (apps.length === 0) {
-                lista.innerHTML = '<p style="color: #999; font-size: 12px;">Sin apps. Agrega una en la pestaña Apps.</p>';
-                completa.innerHTML = '<p style="color: #999; font-size: 12px;">Sin apps</p>';
-                editar.innerHTML = '<p style="color: #999; font-size: 12px;">Sin apps para editar</p>';
-                return;
-            }
-
-            lista.innerHTML = apps.map(a => `
-                <div class="app-item">
-                    <div class="app-info">
-                        <strong>${a.nombre}</strong>
-                        <small>S/ ${a.precio}/mes • ${a.cupos} cupos</small>
-                    </div>
-                </div>
-            `).join('');
-
-            completa.innerHTML = apps.map(a => {
-                const clientesApp = clientes.filter(c => c.appId === a.id).length;
+            const tbody = document.getElementById('apps-tabla');
+            tbody.innerHTML = apps.map(a => {
+                const clientesApp = clientes.filter(c => c.app_id === a.id).length;
                 return `<tr>
                     <td><strong>${a.nombre}</strong></td>
                     <td>${a.correo || '-'}</td>
                     <td>S/ ${a.precio}</td>
                     <td>${a.cupos}</td>
                     <td>${clientesApp}</td>
-                    <td>
-                        <button class="btn-small" onclick="actualizarApp(${a.id})">✏️</button>
-                        <button class="btn-small danger" onclick="eliminarApp(${a.id})">🗑️</button>
-                    </td>
+                    <td><button class="btn-small danger" onclick="eliminarApp(${a.id})">🗑️</button></td>
                 </tr>`;
             }).join('');
-            
-            if (completa.innerHTML === '') {
-                completa.innerHTML = '<p style="color: #999;">Sin apps</p>';
-            } else {
-                completa.innerHTML = '<table class="table"><thead><tr><th>App</th><th>Correo</th><th>Precio</th><th>Cupos</th><th>Clientes</th><th>Acción</th></tr></thead><tbody>' + completa.innerHTML + '</tbody></table>';
-            }
+            document.getElementById('total-apps').textContent = apps.length;
+        }
 
-            editar.innerHTML = '<div>' + apps.map(a => `
-                <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; margin-bottom: 10px;">
-                    <strong>${a.nombre}</strong>
-                    <button class="btn-small" onclick="actualizarApp(${a.id})" style="float: right;">Editar</button>
-                </div>
-            `).join('') + '</div>';
+        async function eliminarApp(id) {
+            if (confirm('¿Eliminar esta app?')) {
+                try {
+                    const { error } = await supabase.from('apps').delete().eq('id', id);
+                    if (error) throw error;
+                    cargarDatos();
+                } catch (err) {
+                    alert('❌ Error al eliminar');
+                }
+            }
         }
 
         function renderClientes() {
@@ -306,53 +264,44 @@
             tbody.innerHTML = clientes.map(c => `<tr>
                 <td>${c.nombre}</td>
                 <td>${c.telefono}</td>
-                <td>${c.appNombre || c.app}</td>
-                <td>${new Date(c.fecha).toLocaleDateString()}</td>
-                <td><a href="https://wa.me/${c.telefono.replace(/[^0-9]/g, '')}" class="wa-link" target="_blank">💬 Abrir</a></td>
+                <td>${c.app_nombre}</td>
+                <td>${new Date(c.fecha_registro).toLocaleDateString()}</td>
+                <td><a href="${c.wa_link}" class="wa-link" target="_blank">💬 Abrir</a></td>
                 <td><button class="btn-small danger" onclick="eliminarCliente(${c.id})">🗑️</button></td>
             </tr>`).join('');
 
             recientes.innerHTML = clientes.slice(-5).reverse().map(c => `<tr>
                 <td>${c.nombre}</td>
                 <td>${c.telefono}</td>
-                <td>${c.appNombre || c.app}</td>
-                <td><a href="https://wa.me/${c.telefono.replace(/[^0-9]/g, '')}" class="wa-link" target="_blank">💬 Abrir</a></td>
+                <td>${c.app_nombre}</td>
+                <td><a href="${c.wa_link}" class="wa-link" target="_blank">💬 Abrir</a></td>
             </tr>`).join('');
+
+            document.getElementById('total-clientes').textContent = clientes.length;
         }
 
-        function eliminarCliente(id) {
+        async function eliminarCliente(id) {
             if (confirm('¿Eliminar cliente?')) {
-                clientes = clientes.filter(c => c.id !== id);
-                guardar();
-            }
-        }
-
-        function guardarMensajes() {
-            mensajes.bienvenida = document.getElementById('msg-bienvenida').value;
-            mensajes.recordatorio = document.getElementById('msg-recordatorio').value;
-            guardar();
-            alert('✅ Mensajes guardados');
-        }
-
-        function borrarTodo() {
-            if (confirm('⚠️ ¿ELIMINAR TODO? No se puede deshacer.')) {
-                if (confirm('¿En serio? Esta es tu última oportunidad.')) {
-                    localStorage.clear();
-                    location.reload();
+                try {
+                    const { error } = await supabase.from('clientes').delete().eq('id', id);
+                    if (error) throw error;
+                    cargarDatos();
+                } catch (err) {
+                    alert('❌ Error al eliminar');
                 }
             }
         }
 
-        function actualizarDashboard() {
-            document.getElementById('total-clientes').textContent = clientes.length;
-            document.getElementById('total-apps').textContent = apps.length;
-            const ingresoTotal = clientes.length * (apps[0]?.precio || 10);
-            document.getElementById('ingreso-total').textContent = 'S/ ' + ingresoTotal;
+        async function guardarMensajes() {
+            mensajes.bienvenida = document.getElementById('msg-bienvenida').value;
+            mensajes.recordatorio = document.getElementById('msg-recordatorio').value;
+            localStorage.setItem('mensajes', JSON.stringify(mensajes));
+            alert('✅ Mensajes guardados');
         }
 
-        function cargarMensajes() {
-            document.getElementById('msg-bienvenida').value = mensajes.bienvenida || '';
-            document.getElementById('msg-recordatorio').value = mensajes.recordatorio || '';
+        function actualizarDashboard() {
+            const ingresoTotal = clientes.length * (apps[0]?.precio || 10);
+            document.getElementById('ingreso-total').textContent = 'S/ ' + ingresoTotal;
         }
 
         function actualizar() {
@@ -361,15 +310,30 @@
             actualizarDashboard();
         }
 
-        window.addEventListener('storage', (e) => {
-            if (e.key === 'clientes' || e.key === 'apps') {
-                clientes = JSON.parse(localStorage.getItem('clientes')) || [];
-                apps = JSON.parse(localStorage.getItem('apps')) || [];
-                actualizar();
-            }
-        });
+        function cargarMensajes() {
+            mensajes = JSON.parse(localStorage.getItem('mensajes')) || {
+                bienvenida: "¡Bienvenido! Aquí está tu código de acceso.",
+                recordatorio: "Recordatorio: Tu acceso vence pronto."
+            };
+            document.getElementById('msg-bienvenida').value = mensajes.bienvenida || '';
+            document.getElementById('msg-recordatorio').value = mensajes.recordatorio || '';
+        }
 
-        actualizar();
+        const clientesSubscription = supabase
+            .channel('clientes-updates')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'clientes' }, () => {
+                cargarDatos();
+            })
+            .subscribe();
+
+        const appsSubscription = supabase
+            .channel('apps-updates')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'apps' }, () => {
+                cargarDatos();
+            })
+            .subscribe();
+
+        cargarDatos();
         cargarMensajes();
     </script>
 </body>
