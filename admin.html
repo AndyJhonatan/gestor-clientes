@@ -172,18 +172,18 @@
         const SUPABASE_KEY = 'sb_publishable_Zv8dGqKjGDX7wedV7KLicA_hmtFRxPj';
         
         const { createClient } = window.supabase;
-        const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+        const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let apps = [];
         let clientes = [];
 
         async function cargarDatos() {
             try {
-                const { data: appsData, error: appsError } = await supabase.from('apps').select('*');
+                const { data: appsData, error: appsError } = await supabaseAdmin.from('apps').select('*');
                 if (appsError) throw appsError;
                 apps = appsData || [];
 
-                const { data: clientesData, error: clientesError } = await supabase.from('clientes').select('*');
+                const { data: clientesData, error: clientesError } = await supabaseAdmin.from('clientes').select('*');
                 if (clientesError) throw clientesError;
                 clientes = clientesData || [];
 
@@ -209,7 +209,7 @@
             }
 
             try {
-                const { data, error } = await supabase
+                const { data, error } = await supabaseAdmin
                     .from('apps')
                     .insert([{
                         nombre,
@@ -247,7 +247,7 @@
 
             if (cliente && app) {
                 try {
-                    const { error } = await supabase
+                    const { error } = await supabaseAdmin
                         .from('clientes')
                         .update({ app: app.nombre })
                         .eq('id', cliente.id);
@@ -325,7 +325,7 @@
         async function eliminarApp(id) {
             if (confirm('¿Eliminar?')) {
                 try {
-                    const { error } = await supabase.from('apps').delete().eq('id', id);
+                    const { error } = await supabaseAdmin.from('apps').delete().eq('id', id);
                     if (error) throw error;
                     cargarDatos();
                 } catch (err) {
@@ -337,7 +337,7 @@
         async function eliminarCliente(id) {
             if (confirm('¿Eliminar?')) {
                 try {
-                    const { error } = await supabase.from('clientes').delete().eq('id', id);
+                    const { error } = await supabaseAdmin.from('clientes').delete().eq('id', id);
                     if (error) throw error;
                     cargarDatos();
                 } catch (err) {
@@ -365,21 +365,6 @@
                 window.location.href = 'index.html';
             }
         }
-
-        // Sincronizar en tiempo real
-        const clientesSubscription = supabase
-            .channel('clientes-changes')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'clientes' }, () => {
-                cargarDatos();
-            })
-            .subscribe();
-
-        const appsSubscription = supabase
-            .channel('apps-changes')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'apps' }, () => {
-                cargarDatos();
-            })
-            .subscribe();
 
         cargarDatos();
     </script>
