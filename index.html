@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestor Clientes</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
@@ -18,6 +19,7 @@
         input:focus { outline: none; border-color: #667eea; }
         button { width: 100%; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; margin-top: 10px; }
         button:hover { opacity: 0.9; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
         .success { display: none; background: #d4edda; color: #155724; padding: 20px; border-radius: 8px; text-align: center; }
         .success h2 { margin-bottom: 10px; }
         .alert { padding: 10px; background: #d1ecf1; color: #0c5460; border-radius: 6px; margin-bottom: 15px; font-size: 12px; }
@@ -54,7 +56,7 @@
                 <input type="tel" id="telefono" placeholder="+51 999 999 999" required>
             </div>
 
-            <button onclick="registrar()">Registrarme</button>
+            <button id="btn-registrar" onclick="registrar()" disabled>Cargando...</button>
         </div>
 
         <div class="success" id="success">
@@ -76,10 +78,18 @@
     </div>
 
     <script>
-        let clientes = JSON.parse(localStorage.getItem('clientes')) || [];
+        const SUPABASE_URL = 'https://opmbftaczdrvizroaeew.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_Zv8dGqKjGDX7wedV7KLicA_hmtFRxPj';
         const CONTRASEÑA_ADMIN = '552083Aa';
+        
+        const { createClient } = window.supabase;
+        const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        function registrar() {
+        // Habilitar botón cuando se cargue
+        document.getElementById('btn-registrar').disabled = false;
+        document.getElementById('btn-registrar').textContent = 'Registrarme';
+
+        async function registrar() {
             const nombre = document.getElementById('nombre').value.trim();
             const telefono = document.getElementById('telefono').value.trim();
 
@@ -88,20 +98,32 @@
                 return;
             }
 
-            const cliente = {
-                id: Date.now(),
-                nombre,
-                telefono,
-                app: 'Sin asignar',
-                wa_link: `https://wa.me/${telefono.replace(/[^0-9]/g, '')}`,
-                fecha: new Date().toISOString()
-            };
+            try {
+                const btn = document.getElementById('btn-registrar');
+                btn.disabled = true;
+                btn.textContent = 'Registrando...';
 
-            clientes.push(cliente);
-            localStorage.setItem('clientes', JSON.stringify(clientes));
+                const { data, error } = await supabase
+                    .from('clientes')
+                    .insert([{
+                        nombre,
+                        telefono,
+                        app: 'Sin asignar',
+                        wa_link: `https://wa.me/${telefono.replace(/[^0-9]/g, '')}`,
+                        fecha_registro: new Date().toISOString()
+                    }]);
 
-            document.getElementById('form').style.display = 'none';
-            document.getElementById('success').style.display = 'block';
+                if (error) throw error;
+
+                document.getElementById('form').style.display = 'none';
+                document.getElementById('success').style.display = 'block';
+
+            } catch (err) {
+                console.error('Error:', err);
+                alert('❌ Error al registrar');
+                document.getElementById('btn-registrar').disabled = false;
+                document.getElementById('btn-registrar').textContent = 'Registrarme';
+            }
         }
 
         function abrirAdmin() {
