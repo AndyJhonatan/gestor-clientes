@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registrate</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
@@ -17,11 +16,9 @@
         input:focus, select:focus { outline: none; border-color: #667eea; }
         button { width: 100%; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; margin-top: 10px; }
         button:hover { opacity: 0.9; }
-        button:disabled { opacity: 0.5; cursor: not-allowed; }
         .success { display: none; background: #d4edda; color: #155724; padding: 20px; border-radius: 8px; text-align: center; }
         .success h2 { margin-bottom: 10px; }
         .alert { padding: 10px; background: #d1ecf1; color: #0c5460; border-radius: 6px; margin-bottom: 15px; font-size: 12px; }
-        .error { padding: 10px; background: #f8d7da; color: #721c24; border-radius: 6px; margin-bottom: 15px; font-size: 12px; }
     </style>
 </head>
 <body>
@@ -32,8 +29,6 @@
         <div class="alert">
             ✅ Solo necesitamos tu nombre y teléfono WhatsApp
         </div>
-
-        <div id="error-msg" class="error" style="display: none;"></div>
 
         <div id="form">
             <div class="form-group">
@@ -53,7 +48,7 @@
                 </select>
             </div>
 
-            <button id="btn-registrar" onclick="registrar()">Registrarme</button>
+            <button onclick="registrar()">Registrarme</button>
         </div>
 
         <div class="success" id="success">
@@ -63,32 +58,10 @@
     </div>
 
     <script>
-        const SUPABASE_URL = 'https://kzvtzhmiyxkspfyeglqk.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt6dnR6aG1peXhrc3BmeWVnbHFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2Nzc2NDQsImV4cCI6MjA5MzI1MzY0NH0.b5DhGBJm6KV5_xrWHhKwJwKVkqPBhKVr3zN5bU8vPfA';
-        
-        const { createClient } = window.supabase;
-        const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+        let apps = JSON.parse(localStorage.getItem('apps')) || [];
+        let clientes = JSON.parse(localStorage.getItem('clientes')) || [];
 
-        let apps = [];
-
-        async function cargarApps() {
-            try {
-                const { data, error } = await supabase
-                    .from('apps')
-                    .select('*');
-                
-                if (error) throw error;
-                
-                if (data && data.length > 0) {
-                    apps = data;
-                } else {
-                    apps = JSON.parse(localStorage.getItem('apps')) || [];
-                }
-            } catch (err) {
-                console.log('Usando localStorage');
-                apps = JSON.parse(localStorage.getItem('apps')) || [];
-            }
-
+        function cargarApps() {
             const select = document.getElementById('app');
             if (apps.length === 0) {
                 select.innerHTML = '<option value="">Sin apps disponibles</option>';
@@ -98,53 +71,44 @@
             }
         }
 
-        async function registrar() {
+        function registrar() {
             const nombre = document.getElementById('nombre').value.trim();
             const telefono = document.getElementById('telefono').value.trim();
             const appSeleccionada = document.getElementById('app').value;
-            const errorMsg = document.getElementById('error-msg');
-
-            errorMsg.style.display = 'none';
 
             if (!nombre || !telefono || !appSeleccionada) {
-                errorMsg.textContent = '⚠️ Completa todos los campos';
-                errorMsg.style.display = 'block';
+                alert('⚠️ Completa todos los campos');
                 return;
             }
 
             const [appId, appNombre, appPrecio] = appSeleccionada.split('|');
 
-            try {
-                const btn = document.getElementById('btn-registrar');
-                btn.disabled = true;
-                btn.textContent = 'Registrando...';
+            const cliente = {
+                id: Date.now(),
+                nombre,
+                telefono,
+                appId: parseInt(appId),
+                app: appNombre,
+                precio: parseInt(appPrecio),
+                wa_link: `https://wa.me/${telefono.replace(/[^0-9]/g, '')}`,
+                fecha: new Date().toISOString()
+            };
 
-                const { data, error } = await supabase
-                    .from('clientes')
-                    .insert([{
-                        nombre,
-                        telefono,
-                        app_id: parseInt(appId),
-                        app_nombre: appNombre,
-                        app_precio: parseInt(appPrecio),
-                        wa_link: `https://wa.me/${telefono.replace(/[^0-9]/g, '')}`,
-                        fecha_registro: new Date().toISOString()
-                    }]);
+            clientes.push(cliente);
+            localStorage.setItem('clientes', JSON.stringify(clientes));
 
-                if (error) throw error;
+            document.getElementById('form').style.display = 'none';
+            document.getElementById('success').style.display = 'block';
 
-                document.getElementById('form').style.display = 'none';
-                document.getElementById('success').style.display = 'block';
-
-                console.log('Cliente registrado:', data);
-            } catch (err) {
-                console.error('Error:', err);
-                errorMsg.textContent = '❌ Error al registrar. Intenta de nuevo.';
-                errorMsg.style.display = 'block';
-                document.getElementById('btn-registrar').disabled = false;
-                document.getElementById('btn-registrar').textContent = 'Registrarme';
-            }
+            console.log('Cliente registrado:', cliente);
         }
+
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'apps') {
+                apps = JSON.parse(e.newValue) || [];
+                cargarApps();
+            }
+        });
 
         cargarApps();
     </script>
