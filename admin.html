@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel Admin - Gestor Clientes</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; }
@@ -21,14 +22,12 @@
         .card h2 { margin-bottom: 15px; color: #333; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; }
         .form-group { margin-bottom: 12px; }
         label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px; color: #333; }
-        input, select, textarea { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; font-family: inherit; }
-        input:focus, select:focus, textarea:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
-        button { padding: 8px 16px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.3s; }
+        input, select { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; }
+        input:focus, select:focus { outline: none; border-color: #667eea; }
+        button { padding: 8px 16px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; }
         button:hover { background: #5568d3; }
         button.danger { background: #dc3545; }
         button.danger:hover { background: #c82333; }
-        button.success { background: #28a745; }
-        button.success:hover { background: #218838; }
         .table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
         .table th { background: #f8f9fa; padding: 10px; text-align: left; font-weight: 600; border-bottom: 2px solid #ddd; }
         .table td { padding: 10px; border-bottom: 1px solid #ddd; }
@@ -53,7 +52,7 @@
         <header>
             <div>
                 <h1>👨‍💼 Panel Admin</h1>
-                <p>Administra tus apps y clientes</p>
+                <p>🟢 Conectado en tiempo real</p>
             </div>
             <button class="logout-btn" onclick="logout()">Cerrar Sesión</button>
         </header>
@@ -169,8 +168,31 @@
     </div>
 
     <script>
-        let apps = JSON.parse(localStorage.getItem('apps')) || [];
-        let clientes = JSON.parse(localStorage.getItem('clientes')) || [];
+        const SUPABASE_URL = 'https://opmbftaczdrvizroaeew.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_Zv8dGqKjGDX7wedV7KLicA_hmtFRxPj';
+        
+        const { createClient } = window.supabase;
+        const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let apps = [];
+        let clientes = [];
+
+        async function cargarDatos() {
+            try {
+                const { data: appsData, error: appsError } = await supabase.from('apps').select('*');
+                if (appsError) throw appsError;
+                apps = appsData || [];
+
+                const { data: clientesData, error: clientesError } = await supabase.from('clientes').select('*');
+                if (clientesError) throw clientesError;
+                clientes = clientesData || [];
+
+                actualizar();
+            } catch (err) {
+                console.error('Error:', err);
+                alert('Error conectando a la base de datos');
+            }
+        }
 
         function tab(name) {
             document.querySelectorAll('.content').forEach(e => e.classList.remove('active'));
@@ -179,39 +201,39 @@
             event.target.classList.add('active');
         }
 
-        function guardar() {
-            localStorage.setItem('apps', JSON.stringify(apps));
-            localStorage.setItem('clientes', JSON.stringify(clientes));
-        }
-
-        function agregarApp() {
+        async function agregarApp() {
             const nombre = document.getElementById('app-nombre').value.trim();
             if (!nombre) {
                 alert('⚠️ Completa el nombre');
                 return;
             }
 
-            const app = {
-                id: Date.now(),
-                nombre,
-                correo: document.getElementById('app-correo').value,
-                precio: parseInt(document.getElementById('app-precio').value) || 10,
-                cupos: parseInt(document.getElementById('app-cupos').value) || 18
-            };
+            try {
+                const { data, error } = await supabase
+                    .from('apps')
+                    .insert([{
+                        nombre,
+                        correo: document.getElementById('app-correo').value,
+                        precio: parseInt(document.getElementById('app-precio').value) || 10,
+                        cupos: parseInt(document.getElementById('app-cupos').value) || 18
+                    }]);
 
-            apps.push(app);
-            guardar();
+                if (error) throw error;
 
-            document.getElementById('app-nombre').value = '';
-            document.getElementById('app-correo').value = '';
-            document.getElementById('app-precio').value = '10';
-            document.getElementById('app-cupos').value = '18';
+                document.getElementById('app-nombre').value = '';
+                document.getElementById('app-correo').value = '';
+                document.getElementById('app-precio').value = '10';
+                document.getElementById('app-cupos').value = '18';
 
-            alert('✅ App creada');
-            actualizar();
+                alert('✅ App creada');
+                cargarDatos();
+            } catch (err) {
+                console.error('Error:', err);
+                alert('❌ Error al crear app');
+            }
         }
 
-        function asignarApp() {
+        async function asignarApp() {
             const clienteId = document.getElementById('cliente-select').value;
             const appId = document.getElementById('app-select').value;
 
@@ -224,10 +246,19 @@
             const app = apps.find(a => a.id === parseInt(appId));
 
             if (cliente && app) {
-                cliente.app = app.nombre;
-                guardar();
-                alert('✅ App asignada');
-                actualizar();
+                try {
+                    const { error } = await supabase
+                        .from('clientes')
+                        .update({ app: app.nombre })
+                        .eq('id', cliente.id);
+
+                    if (error) throw error;
+                    alert('✅ App asignada');
+                    cargarDatos();
+                } catch (err) {
+                    console.error('Error:', err);
+                    alert('❌ Error al asignar');
+                }
             }
         }
 
@@ -272,7 +303,7 @@
                     <td>${c.nombre}</td>
                     <td>${c.telefono}</td>
                     <td>${c.app}</td>
-                    <td>${new Date(c.fecha).toLocaleDateString()}</td>
+                    <td>${new Date(c.fecha_registro).toLocaleDateString()}</td>
                     <td><a href="${c.wa_link}" class="wa-link" target="_blank">💬 Abrir</a></td>
                     <td><button class="btn-small danger" onclick="eliminarCliente(${c.id})">🗑️</button></td>
                 </tr>`).join('');
@@ -291,19 +322,27 @@
             document.getElementById('total-clientes').textContent = clientes.length;
         }
 
-        function eliminarApp(id) {
+        async function eliminarApp(id) {
             if (confirm('¿Eliminar?')) {
-                apps = apps.filter(a => a.id !== id);
-                guardar();
-                actualizar();
+                try {
+                    const { error } = await supabase.from('apps').delete().eq('id', id);
+                    if (error) throw error;
+                    cargarDatos();
+                } catch (err) {
+                    alert('❌ Error al eliminar');
+                }
             }
         }
 
-        function eliminarCliente(id) {
+        async function eliminarCliente(id) {
             if (confirm('¿Eliminar?')) {
-                clientes = clientes.filter(c => c.id !== id);
-                guardar();
-                actualizar();
+                try {
+                    const { error } = await supabase.from('clientes').delete().eq('id', id);
+                    if (error) throw error;
+                    cargarDatos();
+                } catch (err) {
+                    alert('❌ Error al eliminar');
+                }
             }
         }
 
@@ -327,16 +366,22 @@
             }
         }
 
-        actualizar();
+        // Sincronizar en tiempo real
+        const clientesSubscription = supabase
+            .channel('clientes-changes')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'clientes' }, () => {
+                cargarDatos();
+            })
+            .subscribe();
 
-        // Escuchar cambios desde otra pestaña
-        window.addEventListener('storage', (e) => {
-            if (e.key === 'clientes' || e.key === 'apps') {
-                clientes = JSON.parse(localStorage.getItem('clientes')) || [];
-                apps = JSON.parse(localStorage.getItem('apps')) || [];
-                actualizar();
-            }
-        });
+        const appsSubscription = supabase
+            .channel('apps-changes')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'apps' }, () => {
+                cargarDatos();
+            })
+            .subscribe();
+
+        cargarDatos();
     </script>
 </body>
 </html>
