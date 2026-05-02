@@ -61,6 +61,8 @@
         .mbox h2 { margin-bottom: 16px; font-size: 18px; }
         .mbox .fbtn { display: flex; gap: 10px; margin-top: 16px; }
         .mbox .fbtn button { flex: 1; }
+        a { color: var(--primary); text-decoration: none; cursor: pointer; }
+        a:hover { text-decoration: underline; }
         @media (max-width: 700px) {
             .grid2, .grid4 { grid-template-columns: 1fr; }
             header { flex-direction: column; text-align: center; }
@@ -70,7 +72,7 @@
 <body>
 <div class="wrap">
     <header>
-        <div><h1>👨‍💼 Panel Admin v5.0</h1><small>🟢 Sistema Funcional</small></div>
+        <div><h1>👨‍💼 Panel Admin v6.0</h1><small>🟢 Con Edición de Apps y Grupos</small></div>
         <div class="hbtns">
             <button class="hbtn" onclick="toggleDM()">🌙 Modo Oscuro</button>
             <button class="hbtn" onclick="salir()">Cerrar Sesión</button>
@@ -196,6 +198,7 @@
     </div>
 </div>
 
+<!-- MODAL EDITAR CLIENTE -->
 <div id="modal-edit" class="modal">
     <div class="mbox">
         <h2>✏️ Editar Cliente</h2>
@@ -219,9 +222,48 @@
     </div>
 </div>
 
+<!-- MODAL EDITAR APP -->
+<div id="modal-eapp" class="modal">
+    <div class="mbox">
+        <h2>✏️ Editar App</h2>
+        <input type="hidden" id="eapp-id">
+        <div class="grid2">
+            <div class="fg"><label>Nombre</label><input id="eapp-nombre"></div>
+            <div class="fg"><label>Tipo</label><select id="eapp-tipo"><option value="personal">Personal</option><option value="shared">Compartida</option></select></div>
+        </div>
+        <div class="grid4">
+            <div class="fg"><label>Precio (S/)</label><input type="number" id="eapp-precio"></div>
+            <div class="fg"><label>Cupos</label><input type="number" id="eapp-cupos"></div>
+            <div class="fg"><label>Inversión (S/)</label><input type="number" id="eapp-inversion"></div>
+            <div class="fg"><label>Fecha Pago</label><input type="date" id="eapp-fpago"></div>
+        </div>
+        <div class="fbtn">
+            <button onclick="guardarEditarApp()">✅ Guardar</button>
+            <button style="background: #6c757d;" onclick="cerrarModal('modal-eapp')">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL EDITAR GRUPO -->
+<div id="modal-egrp" class="modal">
+    <div class="mbox">
+        <h2>✏️ Editar Grupo</h2>
+        <input type="hidden" id="egrp-id">
+        <p style="margin-bottom: 15px; color: var(--light);"><strong id="egrp-correo"></strong></p>
+        <div class="grid2">
+            <div class="fg"><label>Fecha de Pago (Grupo)</label><input type="date" id="egrp-fpago"></div>
+            <div class="fg"><label>Inversión (Grupo)</label><input type="number" id="egrp-inversion"></div>
+        </div>
+        <div class="fbtn">
+            <button onclick="guardarEditarGrupo()">✅ Guardar</button>
+            <button style="background: #6c757d;" onclick="cerrarModal('modal-egrp')">Cancelar</button>
+        </div>
+    </div>
+</div>
+
 <script>
 let db = null;
-let apps = [], clientes = [], appCorreos = {}, msgs = [];
+let apps = [], clientes = [], appCorreos = {}, correosConfig = [], msgs = [];
 
 function inicializarSupabase() {
     const URL = 'https://opmbftaczdrvizroaeew.supabase.co';
@@ -258,10 +300,11 @@ function cerrarModal(id) {
 async function cargarDatos() {
     if (!db) return;
     try {
-        const [appsRes, clientesRes, correosRes] = await Promise.all([
+        const [appsRes, clientesRes, correosRes, configRes] = await Promise.all([
             db.from('apps').select('*'),
             db.from('clientes').select('*').order('fecha_registro', { ascending: false }),
-            db.from('app_correos').select('*')
+            db.from('app_correos').select('*'),
+            db.from('app_correos_config').select('*')
         ]);
         apps = appsRes.data || [];
         clientes = clientesRes.data || [];
@@ -270,6 +313,7 @@ async function cargarDatos() {
             if (!appCorreos[row.app_id]) appCorreos[row.app_id] = [];
             appCorreos[row.app_id].push(row.correo);
         });
+        correosConfig = configRes.data || [];
         actualizar();
     } catch (e) {
         console.error('Error:', e);
@@ -320,7 +364,7 @@ function renderApps() {
     if (!apps.length) { tb.innerHTML = '<tr><td colspan="7">Sin apps</td></tr>'; return; }
     tb.innerHTML = apps.map(a => {
         const n = clientes.filter(c => Number(c.app_id) === Number(a.id)).length;
-        return `<tr><td><strong>${a.nombre}</strong></td><td><span class="tip ${a.tipo === 'shared' ? 's' : 'p'}">${a.tipo}</span></td><td>S/ ${a.precio}</td><td>S/ ${a.inversion || 0}</td><td>${fmt(a.fecha_pago)}</td><td>${n}</td><td><button class="sm red" onclick="eliminarApp(${a.id})">🗑️</button></td></tr>`;
+        return `<tr><td><a onclick="abrirEditarApp(${a.id})">${a.nombre}</a></td><td><span class="tip ${a.tipo === 'shared' ? 's' : 'p'}">${a.tipo}</span></td><td>S/ ${a.precio}</td><td>S/ ${a.inversion || 0}</td><td>${fmt(a.fecha_pago)}</td><td>${n}</td><td><button class="sm red" onclick="eliminarApp(${a.id})">🗑️</button></td></tr>`;
     }).join('');
 }
 
@@ -377,7 +421,10 @@ function renderVista() {
     let html = `<div style="margin-top: 12px; font-size: 12px; color: var(--light);">Total: ${clientesApp.length} cliente(s) | ${cs.length} grupo(s)</div>`;
     cs.forEach(correo => {
         const grupo = clientesApp.filter(c => c.correo === correo);
-        html += `<div class="grupo"><h4>📧 ${correo} <span style="background: var(--primary); color: #fff; padding: 2px 8px; border-radius: 10px; font-size: 11px;">${grupo.length}</span></h4>${!grupo.length ? '<p>Sin clientes</p>' : grupo.map(c => `<div class="cli-row"><div><strong>${c.nombre}</strong><br><small>${c.telefono}</small></div><button class="sm" onclick="abrirEditar(${c.id})">✏️</button></div>`).join('')}</div>`;
+        const grpConfig = correosConfig.find(x => Number(x.app_id) === appId && x.correo === correo);
+        const fpGrupo = grpConfig && grpConfig.fecha_pago ? fmt(grpConfig.fecha_pago) : '-';
+        const invGrupo = grpConfig ? grpConfig.inversion_grupo : 0;
+        html += `<div class="grupo"><h4>📧 ${correo} <button class="sm" onclick="abrirEditarGrupo(${appId}, '${correo}')" style="margin-left: 10px;">✏️</button></h4><small>F.Pago: ${fpGrupo} | Inv: S/ ${invGrupo}</small>${!grupo.length ? '<p>Sin clientes</p>' : grupo.map(c => `<div class="cli-row"><div><strong>${c.nombre}</strong><br><small>${c.telefono}</small></div><button class="sm" onclick="abrirEditar(${c.id})">✏️</button></div>`).join('')}</div>`;
     });
     vista.innerHTML = html;
 }
@@ -390,7 +437,25 @@ function renderGanancias() {
         const ingreso = clientesApp.length * a.precio;
         const inversion = a.inversion || 0;
         const ganancia = ingreso - inversion;
-        return `<div style="border: 1px solid var(--border); border-radius: 8px; padding: 14px; margin: 10px 0;"><div style="display: flex; justify-content: space-between; flex-wrap: wrap;"><div><strong>${a.nombre}</strong> <span class="tip">${a.tipo}</span></div><div style="text-align: right;"><div>Clientes: ${clientesApp.length}</div><div>Ingreso: S/ ${ingreso}</div><div>Inversión: S/ ${inversion}</div><div style="font-size: 16px; font-weight: bold; color: ${ganancia >= 0 ? '#28a745' : '#dc3545'};margin-top: 4px;">S/ ${ganancia}</div></div></div></div>`;
+        
+        let html = `<div style="border: 1px solid var(--border); border-radius: 8px; padding: 14px; margin: 10px 0;"><div style="display: flex; justify-content: space-between; flex-wrap: wrap;"><div><strong>${a.nombre}</strong> <span class="tip">${a.tipo}</span></div><div style="text-align: right;"><div>Clientes: ${clientesApp.length}</div><div>Ingreso: S/ ${ingreso}</div><div>Inversión: S/ ${inversion}</div><div style="font-size: 16px; font-weight: bold; color: ${ganancia >= 0 ? '#28a745' : '#dc3545'};margin-top: 4px;">S/ ${ganancia}</div></div></div>`;
+        
+        if (a.tipo === 'shared') {
+            const cs = correosDeApp(a.id);
+            html += '<div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border);"><small style="color: var(--light);">Desglose por grupo:</small>';
+            cs.forEach(correo => {
+                const grupo = clientesApp.filter(c => c.correo === correo);
+                const grpConfig = correosConfig.find(x => Number(x.app_id) === Number(a.id) && x.correo === correo);
+                const invGrupo = grpConfig ? grpConfig.inversion_grupo : 0;
+                const ingresoGrupo = grupo.length * a.precio;
+                const gananciaGrupo = ingresoGrupo - invGrupo;
+                html += `<div style="font-size: 11px; margin-top: 6px; padding: 8px; background: var(--bg); border-radius: 4px;">${correo}: S/ ${ingresoGrupo} - S/ ${invGrupo} = <strong style="color: ${gananciaGrupo >= 0 ? '#28a745' : '#dc3545'};">S/ ${gananciaGrupo}</strong></div>`;
+            });
+            html += '</div>';
+        }
+        
+        html += '</div>';
+        return html;
     }).join('');
 }
 
@@ -424,6 +489,39 @@ async function crearApp() {
         fid('a-nombre').value = '';
         fid('a-fpago').value = '';
         alert('✅ App creada');
+        await cargarDatos();
+    } catch (e) {
+        alert('❌ ' + e.message);
+    }
+}
+
+function abrirEditarApp(id) {
+    const a = apps.find(x => x.id === id);
+    if (!a) return;
+    fid('eapp-id').value = a.id;
+    fid('eapp-nombre').value = a.nombre || '';
+    fid('eapp-tipo').value = a.tipo || 'personal';
+    fid('eapp-precio').value = a.precio || 10;
+    fid('eapp-cupos').value = a.cupos || 18;
+    fid('eapp-inversion').value = a.inversion || 0;
+    fid('eapp-fpago').value = a.fecha_pago ? a.fecha_pago.split('T')[0] : '';
+    fid('modal-eapp').classList.add('on');
+}
+
+async function guardarEditarApp() {
+    const id = parseInt(fid('eapp-id').value);
+    const nombre = fid('eapp-nombre').value.trim();
+    const tipo = fid('eapp-tipo').value;
+    const precio = parseInt(fid('eapp-precio').value) || 10;
+    const cupos = parseInt(fid('eapp-cupos').value) || 18;
+    const inversion = parseInt(fid('eapp-inversion').value) || 0;
+    const fecha_pago = fid('eapp-fpago').value;
+    if (!nombre || !fecha_pago) { alert('⚠️ Completa campos'); return; }
+    try {
+        const { error } = await db.from('apps').update({ nombre, tipo, precio, cupos, inversion, fecha_pago }).eq('id', id);
+        if (error) throw error;
+        cerrarModal('modal-eapp');
+        alert('✅ App actualizada');
         await cargarDatos();
     } catch (e) {
         alert('❌ ' + e.message);
@@ -521,13 +619,40 @@ async function guardarEdicion() {
     }
 }
 
+function abrirEditarGrupo(appId, correo) {
+    const g = correosConfig.find(x => Number(x.app_id) === Number(appId) && x.correo === correo);
+    if (!g) { alert('Grupo no encontrado'); return; }
+    fid('egrp-id').value = g.id;
+    fid('egrp-correo').textContent = correo;
+    fid('egrp-fpago').value = g.fecha_pago ? g.fecha_pago.split('T')[0] : '';
+    fid('egrp-inversion').value = g.inversion_grupo || 0;
+    fid('modal-egrp').classList.add('on');
+}
+
+async function guardarEditarGrupo() {
+    const id = parseInt(fid('egrp-id').value);
+    const fecha_pago = fid('egrp-fpago').value || null;
+    const inversion_grupo = parseInt(fid('egrp-inversion').value) || 0;
+    try {
+        const { error } = await db.from('app_correos_config').update({ fecha_pago, inversion_grupo }).eq('id', id);
+        if (error) throw error;
+        cerrarModal('modal-egrp');
+        alert('✅ Grupo actualizado');
+        await cargarDatos();
+    } catch (e) {
+        alert('❌ ' + e.message);
+    }
+}
+
 async function agregarCorreo() {
     const appId = fid('sh-app').value;
     const correo = fid('sh-correo').value.trim();
     if (!appId || !correo) { alert('⚠️ Completa campos'); return; }
     try {
-        const { error } = await db.from('app_correos').insert([{ app_id: parseInt(appId), correo }]);
-        if (error) throw error;
+        const { error: err1 } = await db.from('app_correos').insert([{ app_id: parseInt(appId), correo }]);
+        if (err1) throw err1;
+        const { error: err2 } = await db.from('app_correos_config').insert([{ app_id: parseInt(appId), correo }]);
+        if (err2) throw err2;
         fid('sh-correo').value = '';
         alert('✅ Correo agregado');
         await cargarDatos();
@@ -540,8 +665,8 @@ async function delCorreo(appId, idx) {
     if (!confirm('¿Eliminar?')) return;
     try {
         const correo = correosDeApp(appId)[idx];
-        const { error } = await db.from('app_correos').delete().eq('app_id', appId).eq('correo', correo);
-        if (error) throw error;
+        await db.from('app_correos').delete().eq('app_id', appId).eq('correo', correo);
+        await db.from('app_correos_config').delete().eq('app_id', appId).eq('correo', correo);
         await cargarDatos();
     } catch (e) {
         alert('❌ ' + e.message);
@@ -570,6 +695,8 @@ function delMsg(id) {
 }
 
 async function eliminarApp(id) {
+    const n = clientes.filter(c => Number(c.app_id) === id).length;
+    if (n > 0) { alert(`⚠️ No se puede eliminar: tiene ${n} cliente(s)`); return; }
     if (!confirm('¿Eliminar?')) return;
     try {
         const { error } = await db.from('apps').delete().eq('id', id);
