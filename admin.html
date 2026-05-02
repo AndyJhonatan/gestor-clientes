@@ -17,7 +17,6 @@
             --primary: #667eea;
             --primary-dark: #5568d3;
             --danger: #dc3545;
-            --success: #28a745;
         }
         
         body.dark-mode {
@@ -33,13 +32,12 @@
         
         header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px; border-radius: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
         header h1 { font-size: 24px; }
-        
         .header-buttons { display: flex; gap: 10px; }
         .btn-dark-mode, .logout-btn { background: rgba(255,255,255,0.2); padding: 8px 16px; border: 1px solid white; color: white; border-radius: 6px; cursor: pointer; font-weight: 600; }
         .btn-dark-mode:hover, .logout-btn:hover { background: rgba(255,255,255,0.3); }
         
-        .tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; overflow-x: auto; }
-        .tab-btn { padding: 10px 15px; background: var(--bg-card); border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: 0.3s; color: var(--text); white-space: nowrap; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .tab-btn { padding: 10px 15px; background: var(--bg-card); border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: 0.3s; color: var(--text); }
         .tab-btn.active { background: var(--primary); color: white; }
         
         .content { display: none; }
@@ -47,7 +45,6 @@
         
         .card { background: var(--bg-card); padding: 20px; border-radius: 10px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: 1px solid var(--border); }
         .card h2 { margin-bottom: 15px; color: var(--text); border-bottom: 2px solid var(--border); padding-bottom: 10px; }
-        .card h3 { margin: 15px 0 10px 0; color: var(--text); font-size: 14px; }
         
         .form-group { margin-bottom: 12px; }
         label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px; color: var(--text); }
@@ -72,7 +69,6 @@
         .metric { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px; border-radius: 8px; text-align: center; }
         .metric-value { font-size: 24px; font-weight: bold; }
         .metric-label { font-size: 11px; opacity: 0.9; margin-top: 5px; }
-        
         .metric.success { background: linear-gradient(135deg, #28a745 0%, #20c997 100%); }
         .metric.danger { background: linear-gradient(135deg, #dc3545 0%, #e74c3c 100%); }
         
@@ -86,25 +82,18 @@
         .modal.active { display: flex; }
         .modal-content { background: var(--bg-card); padding: 30px; border-radius: 10px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; }
         .modal-content h2 { margin-bottom: 20px; color: var(--text); }
-        .modal-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
-        .modal-buttons button { margin: 0; }
         
         .portapapeles-item { background: var(--border); padding: 10px; margin: 8px 0; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; }
-        .portapapeles-texto { flex: 1; margin-right: 10px; word-break: break-word; }
         .copy-btn { background: #667eea; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; }
         .copy-btn:hover { background: #5568d3; }
         
         .ganancia-item { background: var(--border); padding: 12px; margin: 10px 0; border-radius: 6px; }
-        .ganancia-item h4 { color: var(--text); margin-bottom: 8px; }
-        .ganancia-detalles { font-size: 12px; color: var(--text-light); }
-        
         .resumen-mes { background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%); padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid var(--primary); }
         
         @media (max-width: 768px) {
             .row { grid-template-columns: 1fr; }
             .row.triple { grid-template-columns: 1fr; }
             .row.quad { grid-template-columns: 1fr 1fr; }
-            header { flex-direction: column; text-align: center; }
         }
     </style>
 </head>
@@ -321,7 +310,6 @@
         <!-- GANANCIAS -->
         <div id="ganancias" class="content">
             <div class="alert">💰 Análisis detallado de ganancias por app.</div>
-
             <div class="card">
                 <h2>📊 Ganancias por App</h2>
                 <div id="ganancias-container"></div>
@@ -336,7 +324,7 @@
                 <h2>➕ Agregar Mensaje</h2>
                 <div class="form-group">
                     <label>Mensaje *</label>
-                    <textarea id="nuevo-mensaje" placeholder="Escribe el mensaje que deseas guardar..." rows="4" style="resize: vertical;"></textarea>
+                    <textarea id="nuevo-mensaje" placeholder="Escribe el mensaje..." rows="4" style="resize: vertical;"></textarea>
                 </div>
                 <button onclick="agregarMensaje()" style="width: 100%;">➕ Guardar Mensaje</button>
             </div>
@@ -357,24 +345,9 @@
         </div>
     </div>
 
-    <!-- MODAL CORREOS -->
-    <div id="modal-correos" class="modal">
-        <div class="modal-content">
-            <h2>📧 Correos: <span id="modal-app-name-correos"></span></h2>
-            <div id="correos-list"></div>
-            <div class="form-group" style="margin-top: 20px;">
-                <label>Nuevo correo *</label>
-                <input type="email" id="nuevo-correo" placeholder="usuario@gmail.com">
-            </div>
-            <button onclick="agregarCorreo()" style="width: 100%; margin-bottom: 10px;">➕ Agregar</button>
-            <button onclick="cerrarModalCorreos()" style="width: 100%; background: #6c757d;">Cerrar</button>
-        </div>
-    </div>
-
     <script>
         const SUPABASE_URL = 'https://opmbftaczdrvizroaeew.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_Zv8dGqKjGDX7wedV7KLicA_hmtFRxPj';
-        const CONTRASEÑA_ADMIN = '552083Aa';
         
         const { createClient } = window.supabase;
         const db = createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -383,7 +356,6 @@
         let clientes = [];
         let appCorreos = {};
         let mensajes = [];
-        let appSeleccionadaParaCorreos = null;
 
         function toggleDarkMode() {
             document.body.classList.toggle('dark-mode');
@@ -394,19 +366,12 @@
             document.body.classList.add('dark-mode');
         }
 
-        function setHoyEnInput(inputId) {
-            const hoy = new Date().toISOString().split('T')[0];
-            document.getElementById(inputId).value = hoy;
-        }
-
         async function cargarDatos() {
             try {
-                const { data: appsData, error: appsError } = await db.from('apps').select('*');
-                if (appsError) throw appsError;
+                const { data: appsData } = await db.from('apps').select('*');
                 apps = appsData || [];
 
-                const { data: clientesData, error: clientesError } = await db.from('clientes').select('*');
-                if (clientesError) throw clientesError;
+                const { data: clientesData } = await db.from('clientes').select('*');
                 clientes = clientesData || [];
 
                 appCorreos = JSON.parse(localStorage.getItem('appCorreos')) || {};
@@ -425,42 +390,6 @@
             event.target.classList.add('active');
         }
 
-        function obtenerMesActual() {
-            const hoy = new Date();
-            return { año: hoy.getFullYear(), mes: hoy.getMonth() + 1 };
-        }
-
-        function calcularGanancia(app) {
-            const clientesApp = clientes.filter(c => c.app_id === app.id);
-            const gananciaTotal = clientesApp.reduce((sum, c) => sum + app.precio, 0);
-            return gananciaTotal;
-        }
-
-        function calcularInversionYGanancia() {
-            const { año, mes } = obtenerMesActual();
-            let inversionTotal = 0;
-            let ingresoTotal = 0;
-
-            apps.forEach(app => {
-                const fechaPago = new Date(app.fecha_pago);
-                if (fechaPago.getFullYear() === año && fechaPago.getMonth() + 1 === mes) {
-                    inversionTotal += app.inversion || 0;
-                }
-                
-                const clientesApp = clientes.filter(c => c.app_id === app.id);
-                clientesApp.forEach(c => {
-                    if (c.fecha_pago) {
-                        const clientePago = new Date(c.fecha_pago);
-                        if (clientePago.getFullYear() === año && clientePago.getMonth() + 1 === mes) {
-                            ingresoTotal += app.precio;
-                        }
-                    }
-                });
-            });
-
-            return { inversion: inversionTotal, ingreso: ingresoTotal, ganancia: ingresoTotal - inversionTotal };
-        }
-
         async function agregarApp() {
             const nombre = document.getElementById('app-nombre').value.trim();
             const tipo = document.getElementById('app-tipo').value;
@@ -473,16 +402,11 @@
             }
 
             try {
-                const { data, error } = await db.from('apps').insert([{
-                    nombre,
-                    tipo,
-                    precio: parseInt(document.getElementById('app-precio').value) || 10,
+                await db.from('apps').insert([{
+                    nombre, tipo, precio: parseInt(document.getElementById('app-precio').value) || 10,
                     cupos: parseInt(document.getElementById('app-cupos').value) || 18,
-                    inversion,
-                    fecha_pago: fechaPago
+                    inversion, fecha_pago: fechaPago
                 }]);
-
-                if (error) throw error;
 
                 document.getElementById('app-nombre').value = '';
                 document.getElementById('app-tipo').value = 'personal';
@@ -494,15 +418,14 @@
                 alert('✅ App creada');
                 cargarDatos();
             } catch (err) {
-                console.error('Error:', err);
-                alert('❌ Error al crear app');
+                alert('❌ Error: ' + err.message);
             }
         }
 
         async function agregarClienteManual() {
             const nombre = document.getElementById('add-nombre').value.trim();
             const telefono = document.getElementById('add-telefono').value.trim();
-            const appId = document.getElementById('add-app').value;
+            const appId = parseInt(document.getElementById('add-app').value);
             const correo = document.getElementById('add-correo').value || null;
             const fechaInicio = document.getElementById('add-fecha-inicio').value;
             const fechaPago = document.getElementById('add-fecha-pago').value || null;
@@ -513,46 +436,37 @@
             }
 
             try {
-                const app = apps.find(a => a.id == appId);
+                const app = apps.find(a => a.id === appId);
+                if (!app) { alert('⚠️ App no encontrada'); return; }
                 
-                const { error } = await db.from('clientes').insert([{
-                    nombre,
-                    telefono,
-                    app: app.nombre,
-                    app_id: appId,
-                    correo: correo,
+                await db.from('clientes').insert([{
+                    nombre, telefono, app: app.nombre, app_id: appId, correo,
                     wa_link: `https://wa.me/${telefono.replace(/[^0-9]/g, '')}`,
-                    fecha_inicio: fechaInicio,
-                    fecha_pago: fechaPago,
+                    fecha_inicio: fechaInicio, fecha_pago: fechaPago,
                     fecha_registro: new Date().toISOString()
                 }]);
-
-                if (error) throw error;
 
                 document.getElementById('add-nombre').value = '';
                 document.getElementById('add-telefono').value = '';
                 document.getElementById('add-app').value = '';
                 document.getElementById('add-correo').value = '';
-                document.getElementById('add-fecha-inicio').value = '';
+                document.getElementById('add-fecha-inicio').value = new Date().toISOString().split('T')[0];
                 document.getElementById('add-fecha-pago').value = '';
 
                 alert('✅ Cliente agregado');
                 cargarDatos();
             } catch (err) {
-                console.error('Error:', err);
-                alert('❌ Error al agregar cliente');
+                alert('❌ Error: ' + err.message);
             }
         }
 
         function actualizarCorreosAdd() {
-            const appId = document.getElementById('add-app').value;
+            const appId = parseInt(document.getElementById('add-app').value);
             const correosSelect = document.getElementById('add-correo');
-            
             correosSelect.innerHTML = '<option value="">--Selecciona--</option>';
 
-            if (appId) {
-                const correosList = appCorreos[appId] || [];
-                correosList.forEach(correo => {
+            if (appId && appCorreos[appId]) {
+                appCorreos[appId].forEach(correo => {
                     const option = document.createElement('option');
                     option.value = correo;
                     option.textContent = correo;
@@ -562,14 +476,12 @@
         }
 
         function actualizarCorreos() {
-            const appId = document.getElementById('app-select').value;
+            const appId = parseInt(document.getElementById('app-select').value);
             const correosSelect = document.getElementById('correo-select');
-            
             correosSelect.innerHTML = '<option value="">--Selecciona--</option>';
 
-            if (appId) {
-                const correosList = appCorreos[appId] || [];
-                correosList.forEach(correo => {
+            if (appId && appCorreos[appId]) {
+                appCorreos[appId].forEach(correo => {
                     const option = document.createElement('option');
                     option.value = correo;
                     option.textContent = correo;
@@ -579,8 +491,8 @@
         }
 
         async function asignarApp() {
-            const clienteId = document.getElementById('cliente-select').value;
-            const appId = document.getElementById('app-select').value;
+            const clienteId = parseInt(document.getElementById('cliente-select').value);
+            const appId = parseInt(document.getElementById('app-select').value);
             const correo = document.getElementById('correo-select').value || null;
             const fechaPago = document.getElementById('asign-fecha-pago').value || null;
 
@@ -589,60 +501,53 @@
                 return;
             }
 
-            const cliente = clientes.find(c => c.id == clienteId);
-            const app = apps.find(a => a.id == appId);
+            try {
+                const cliente = clientes.find(c => c.id === clienteId);
+                const app = apps.find(a => a.id === appId);
 
-            if (cliente && app) {
-                try {
-                    const { error } = await db
-                        .from('clientes')
-                        .update({ 
-                            app: app.nombre,
-                            app_id: appId,
-                            correo: correo,
-                            fecha_pago: fechaPago
-                        })
-                        .eq('id', cliente.id);
+                if (!cliente || !app) { alert('⚠️ No encontrado'); return; }
 
-                    if (error) throw error;
-                    alert('✅ App asignada');
-                    cargarDatos();
-                } catch (err) {
-                    console.error('Error:', err);
-                    alert('❌ Error al asignar');
-                }
+                await db.from('clientes').update({
+                    app: app.nombre, app_id: appId, correo, fecha_pago: fechaPago
+                }).eq('id', clienteId);
+
+                alert('✅ App asignada');
+                document.getElementById('cliente-select').value = '';
+                document.getElementById('app-select').value = '';
+                document.getElementById('correo-select').value = '';
+                document.getElementById('asign-fecha-pago').value = '';
+                cargarDatos();
+            } catch (err) {
+                alert('❌ Error: ' + err.message);
             }
         }
 
         function abrirClientesPorApp() {
-            const appId = document.getElementById('app-filter').value;
+            const appId = parseInt(document.getElementById('app-filter').value);
             
             if (!appId) {
                 alert('⚠️ Selecciona una app');
                 return;
             }
 
-            const app = apps.find(a => a.id == appId);
-            mostrarClientesPorAppYCorreo(appId, app.nombre);
-        }
+            const app = apps.find(a => a.id === appId);
+            if (!app) { alert('⚠️ App no encontrada'); return; }
 
-        function mostrarClientesPorAppYCorreo(appId, appName) {
-            document.getElementById('modal-app-name').textContent = appName;
-            const clientesApp = clientes.filter(c => c.app_id == appId);
+            const clientesApp = clientes.filter(c => c.app_id === appId);
             const correos = appCorreos[appId] || [];
 
+            document.getElementById('modal-app-name').textContent = app.nombre;
+            
             let html = '';
-
-            if (correos.length === 0 && clientesApp.length === 0) {
-                html = '<p style="text-align: center; color: var(--text-light);">No hay datos para esta app</p>';
+            if (clientesApp.length === 0) {
+                html = '<p style="text-align: center; color: var(--text-light);">Sin clientes</p>';
             } else if (correos.length === 0) {
-                html = '<p style="text-align: center; color: var(--text-light);">No hay correos registrados. Muestra los clientes por defecto.</p>';
                 clientesApp.forEach(c => {
                     html += `<div class="ganancia-item">
                         <strong>${c.nombre}</strong> - ${c.telefono}
-                        <div class="ganancia-detalles">
-                            Inicio: ${new Date(c.fecha_inicio).toLocaleDateString()} | 
-                            Pago: ${c.fecha_pago ? new Date(c.fecha_pago).toLocaleDateString() : 'No asignado'}
+                        <div style="font-size: 12px; color: var(--text-light); margin-top: 5px;">
+                            Inicio: ${c.fecha_inicio ? new Date(c.fecha_inicio).toLocaleDateString() : '-'} | 
+                            Pago: ${c.fecha_pago ? new Date(c.fecha_pago).toLocaleDateString() : '-'}
                         </div>
                     </div>`;
                 });
@@ -650,15 +555,15 @@
                 correos.forEach(correo => {
                     const clientesDelCorreo = clientesApp.filter(c => c.correo === correo);
                     html += `<div class="ganancia-item" style="border-left: 4px solid #667eea;">
-                        <h4>📧 ${correo} (${clientesDelCorreo.length} clientes)</h4>`;
+                        <h4>📧 ${correo} (${clientesDelCorreo.length})</h4>`;
                     
                     if (clientesDelCorreo.length === 0) {
-                        html += '<p style="color: var(--text-light); font-size: 12px;">Sin clientes asignados</p>';
+                        html += '<p style="color: var(--text-light); font-size: 12px;">Sin clientes</p>';
                     } else {
                         clientesDelCorreo.forEach(c => {
                             html += `<div style="background: var(--bg); padding: 8px; margin: 5px 0; border-radius: 4px; font-size: 12px;">
                                 <strong>${c.nombre}</strong> - ${c.telefono}
-                                <br><small>Inicio: ${new Date(c.fecha_inicio).toLocaleDateString()} | Pago: ${c.fecha_pago ? new Date(c.fecha_pago).toLocaleDateString() : 'No asignado'}</small>
+                                <br><small>Inicio: ${c.fecha_inicio ? new Date(c.fecha_inicio).toLocaleDateString() : '-'} | Pago: ${c.fecha_pago ? new Date(c.fecha_pago).toLocaleDateString() : '-'}</small>
                             </div>`;
                         });
                     }
@@ -674,74 +579,11 @@
             document.getElementById('modal-clientes-app').classList.remove('active');
         }
 
-        function abrirModalCorreos(appId, appName) {
-            appSeleccionadaParaCorreos = appId;
-            document.getElementById('modal-app-name-correos').textContent = appName;
-            renderCorreos();
-            document.getElementById('modal-correos').classList.add('active');
-        }
-
-        function cerrarModalCorreos() {
-            document.getElementById('modal-correos').classList.remove('active');
-            document.getElementById('nuevo-correo').value = '';
-        }
-
-        function renderCorreos() {
-            const list = document.getElementById('correos-list');
-            const correos = appCorreos[appSeleccionadaParaCorreos] || [];
-
-            if (correos.length === 0) {
-                list.innerHTML = '<p style="color: var(--text-light); text-align: center;">Sin correos</p>';
-            } else {
-                list.innerHTML = correos.map((correo, idx) => `<div class="portapapeles-item">
-                    <span class="portapapeles-texto">${correo}</span>
-                    <button class="small danger" onclick="eliminarCorreo(${idx})">🗑️</button>
-                </div>`).join('');
-            }
-        }
-
-        function agregarCorreo() {
-            const correo = document.getElementById('nuevo-correo').value.trim();
-
-            if (!correo) {
-                alert('⚠️ Ingresa un correo');
-                return;
-            }
-
-            if (!appCorreos[appSeleccionadaParaCorreos]) {
-                appCorreos[appSeleccionadaParaCorreos] = [];
-            }
-
-            appCorreos[appSeleccionadaParaCorreos].push(correo);
-            localStorage.setItem('appCorreos', JSON.stringify(appCorreos));
-
-            document.getElementById('nuevo-correo').value = '';
-            renderCorreos();
-            alert('✅ Correo agregado');
-        }
-
-        function eliminarCorreo(idx) {
-            if (confirm('¿Eliminar?')) {
-                appCorreos[appSeleccionadaParaCorreos].splice(idx, 1);
-                localStorage.setItem('appCorreos', JSON.stringify(appCorreos));
-                renderCorreos();
-            }
-        }
-
         function agregarMensaje() {
             const texto = document.getElementById('nuevo-mensaje').value.trim();
+            if (!texto) { alert('⚠️ Escribe un mensaje'); return; }
 
-            if (!texto) {
-                alert('⚠️ Escribe un mensaje');
-                return;
-            }
-
-            mensajes.push({
-                id: Date.now(),
-                texto,
-                fecha: new Date().toLocaleDateString()
-            });
-
+            mensajes.push({ id: Date.now(), texto, fecha: new Date().toLocaleDateString() });
             localStorage.setItem('mensajes', JSON.stringify(mensajes));
             document.getElementById('nuevo-mensaje').value = '';
             renderMensajes();
@@ -752,37 +594,33 @@
             const container = document.getElementById('portapapeles-lista');
 
             if (mensajes.length === 0) {
-                container.innerHTML = '<p style="text-align: center; color: var(--text-light);">Sin mensajes guardados</p>';
+                container.innerHTML = '<p style="text-align: center;">Sin mensajes</p>';
             } else {
                 container.innerHTML = mensajes.map(msg => `<div class="portapapeles-item">
                     <div style="flex: 1;">
-                        <div class="portapapeles-texto">${msg.texto}</div>
+                        <div style="word-break: break-word;">${msg.texto}</div>
                         <small style="color: var(--text-light);">${msg.fecha}</small>
                     </div>
-                    <button class="copy-btn" onclick="copiarMensaje('${msg.texto.replace(/'/g, "\\'")}')">📋 Copiar</button>
-                    <button class="small danger" style="margin-left: 5px;" onclick="eliminarMensaje(${msg.id})">🗑️</button>
+                    <button class="copy-btn" onclick="copiarMensaje('${msg.texto.replace(/'/g, "\\'")}')">📋</button>
+                    <button class="small danger" onclick="eliminarMensaje(${msg.id})">🗑️</button>
                 </div>`).join('');
             }
         }
 
         function copiarMensaje(texto) {
-            navigator.clipboard.writeText(texto).then(() => {
-                alert('✅ Copiado al portapapeles');
-            });
+            navigator.clipboard.writeText(texto).then(() => alert('✅ Copiado'));
         }
 
         function eliminarMensaje(id) {
-            if (confirm('¿Eliminar mensaje?')) {
-                mensajes = mensajes.filter(m => m.id !== id);
-                localStorage.setItem('mensajes', JSON.stringify(mensajes));
-                renderMensajes();
-            }
+            mensajes = mensajes.filter(m => m.id !== id);
+            localStorage.setItem('mensajes', JSON.stringify(mensajes));
+            renderMensajes();
         }
 
         function renderApps() {
             const tbody = document.getElementById('apps-tabla');
             const select = document.getElementById('add-app');
-            const selectFilter = document.getElementById('app-filter');
+            const filterSelect = document.getElementById('app-filter');
             const appSelect = document.getElementById('app-select');
 
             if (apps.length === 0) {
@@ -790,63 +628,49 @@
             } else {
                 tbody.innerHTML = apps.map(a => {
                     const clientesApp = clientes.filter(c => c.app_id === a.id).length;
-                    const ganancia = calcularGanancia(a);
-                    const diferencia = ganancia - (a.inversion || 0);
                     return `<tr>
                         <td><strong>${a.nombre}</strong></td>
                         <td><span class="app-type ${a.tipo}">${a.tipo.toUpperCase()}</span></td>
                         <td>S/ ${a.precio}</td>
                         <td>${a.cupos || '-'}</td>
                         <td>S/ ${a.inversion || 0}</td>
-                        <td>${new Date(a.fecha_pago).toLocaleDateString()}</td>
+                        <td>${a.fecha_pago ? new Date(a.fecha_pago).toLocaleDateString() : '-'}</td>
                         <td><button class="small" onclick="document.getElementById('app-filter').value='${a.id}'; abrirClientesPorApp()">${clientesApp}</button></td>
-                        <td>
-                            <button class="small" onclick="abrirModalCorreos(${a.id}, '${a.nombre}')">📧</button>
-                            <button class="small danger" onclick="eliminarApp(${a.id})">🗑️</button>
-                        </td>
+                        <td><button class="small danger" onclick="eliminarApp(${a.id})">🗑️</button></td>
                     </tr>`;
                 }).join('');
             }
 
-            select.innerHTML = '<option value="">--Selecciona--</option>' +
-                apps.map(a => `<option value="${a.id}">${a.nombre}</option>`).join('');
-            selectFilter.innerHTML = '<option value="">--Selecciona--</option>' +
-                apps.map(a => `<option value="${a.id}">${a.nombre}</option>`).join('');
-            appSelect.innerHTML = '<option value="">--Selecciona--</option>' +
-                apps.map(a => `<option value="${a.id}">${a.nombre}</option>`).join('');
+            select.innerHTML = '<option value="">--Selecciona--</option>' + apps.map(a => `<option value="${a.id}">${a.nombre}</option>`).join('');
+            filterSelect.innerHTML = '<option value="">--Selecciona--</option>' + apps.map(a => `<option value="${a.id}">${a.nombre}</option>`).join('');
+            appSelect.innerHTML = '<option value="">--Selecciona--</option>' + apps.map(a => `<option value="${a.id}">${a.nombre}</option>`).join('');
         }
 
         function renderClientes() {
             const tbody = document.getElementById('clientes-tabla');
             const recientes = document.getElementById('clientes-recientes');
-            const select = document.getElementById('cliente-select');
+            const selectCliente = document.getElementById('cliente-select');
 
             if (clientes.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">Sin clientes</td></tr>';
                 recientes.innerHTML = '<tr><td colspan="5" style="text-align:center;">Sin clientes</td></tr>';
             } else {
                 tbody.innerHTML = clientes.map(c => `<tr>
-                    <td>${c.nombre}</td>
-                    <td>${c.telefono}</td>
-                    <td>${c.app}</td>
-                    <td>${c.correo || '-'}</td>
+                    <td>${c.nombre}</td><td>${c.telefono}</td><td>${c.app || '-'}</td><td>${c.correo || '-'}</td>
                     <td>${c.fecha_inicio ? new Date(c.fecha_inicio).toLocaleDateString() : '-'}</td>
                     <td>${c.fecha_pago ? new Date(c.fecha_pago).toLocaleDateString() : '-'}</td>
-                    <td><a href="${c.wa_link}" style="color: #25d366;" target="_blank">💬</a></td>
+                    <td><a href="${c.wa_link}" target="_blank" style="color: #25d366;">💬</a></td>
                     <td><button class="small danger" onclick="eliminarCliente(${c.id})">🗑️</button></td>
                 </tr>`).join('');
 
                 recientes.innerHTML = clientes.slice(-5).reverse().map(c => `<tr>
-                    <td>${c.nombre}</td>
-                    <td>${c.app}</td>
-                    <td>${c.correo || '-'}</td>
+                    <td>${c.nombre}</td><td>${c.app || '-'}</td><td>${c.correo || '-'}</td>
                     <td>${c.fecha_inicio ? new Date(c.fecha_inicio).toLocaleDateString() : '-'}</td>
                     <td>${c.fecha_pago ? new Date(c.fecha_pago).toLocaleDateString() : '-'}</td>
                 </tr>`).join('');
             }
 
-            select.innerHTML = '<option value="">--Selecciona--</option>' +
-                clientes.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
+            selectCliente.innerHTML = '<option value="">--Selecciona--</option>' + clientes.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
         }
 
         function renderGanancias() {
@@ -855,57 +679,65 @@
 
             apps.forEach(app => {
                 const clientesApp = clientes.filter(c => c.app_id === app.id);
-                const gananciaTotal = clientesApp.reduce((sum, c) => sum + app.precio, 0);
-                const diferencia = gananciaTotal - (app.inversion || 0);
+                const ganancia = clientesApp.length * app.precio - (app.inversion || 0);
 
                 html += `<div class="ganancia-item">
                     <h4>${app.nombre} <span class="app-type ${app.tipo}">${app.tipo}</span></h4>
-                    <div class="ganancia-detalles">
+                    <div style="font-size: 12px; color: var(--text-light);">
                         <strong>Clientes:</strong> ${clientesApp.length} | 
-                        <strong>Ingresos:</strong> S/ ${gananciaTotal} | 
+                        <strong>Ingresos:</strong> S/ ${clientesApp.length * app.precio} | 
                         <strong>Inversión:</strong> S/ ${app.inversion || 0} | 
-                        <strong>Ganancia Neta:</strong> <span style="color: ${diferencia >= 0 ? '#28a745' : '#dc3545'};">S/ ${diferencia}</span>
-                        <br><small>F. Pago: ${new Date(app.fecha_pago).toLocaleDateString()}</small>
+                        <strong>Ganancia:</strong> <span style="color: ${ganancia >= 0 ? '#28a745' : '#dc3545'};">S/ ${ganancia}</span>
                     </div>
                 </div>`;
             });
 
-            if (apps.length === 0) {
-                html = '<p style="text-align: center; color: var(--text-light);">Sin apps</p>';
-            }
-
-            container.innerHTML = html;
+            container.innerHTML = html || '<p>Sin apps</p>';
         }
 
         function actualizarDashboard() {
-            const { inversion, ingreso, ganancia } = calcularInversionYGanancia();
+            const hoy = new Date();
+            const mes = hoy.getMonth() + 1;
+            const año = hoy.getFullYear();
 
+            let inversion = 0, ingreso = 0;
+
+            apps.forEach(app => {
+                const f = new Date(app.fecha_pago);
+                if (f.getMonth() + 1 === mes && f.getFullYear() === año) inversion += app.inversion || 0;
+            });
+
+            clientes.forEach(c => {
+                if (c.fecha_pago) {
+                    const f = new Date(c.fecha_pago);
+                    if (f.getMonth() + 1 === mes && f.getFullYear() === año) {
+                        const app = apps.find(a => a.id === c.app_id);
+                        if (app) ingreso += app.precio;
+                    }
+                }
+            });
+
+            const ganancia = ingreso - inversion;
+            document.getElementById('total-clientes').textContent = clientes.length;
+            document.getElementById('total-apps').textContent = apps.length;
             document.getElementById('ingreso-mes').textContent = 'S/ ' + ingreso;
             document.getElementById('inversion-mes').textContent = 'S/ ' + inversion;
-
-            let resumenHtml = `
+            document.getElementById('resumen-mes-container').innerHTML = `
                 <strong>💰 Este Mes:</strong><br>
                 Ingresos: <span style="color: #28a745;">S/ ${ingreso}</span> | 
                 Inversión: <span style="color: #dc3545;">S/ ${inversion}</span> | 
-                Ganancia Neta: <span style="color: ${ganancia >= 0 ? '#28a745' : '#dc3545'}; font-weight: bold;">S/ ${ganancia}</span>
+                Ganancia: <span style="color: ${ganancia >= 0 ? '#28a745' : '#dc3545'}; font-weight: bold;">S/ ${ganancia}</span>
             `;
-
-            document.getElementById('resumen-mes-container').innerHTML = resumenHtml;
         }
 
         function actualizar() {
-            renderApps();
-            renderClientes();
-            renderMensajes();
-            renderGanancias();
-            actualizarDashboard();
+            renderApps(); renderClientes(); renderMensajes(); renderGanancias(); actualizarDashboard();
         }
 
         async function eliminarApp(id) {
             if (confirm('¿Eliminar?')) {
                 try {
-                    const { error } = await db.from('apps').delete().eq('id', id);
-                    if (error) throw error;
+                    await db.from('apps').delete().eq('id', id);
                     cargarDatos();
                 } catch (err) {
                     alert('❌ Error');
@@ -916,8 +748,7 @@
         async function eliminarCliente(id) {
             if (confirm('¿Eliminar?')) {
                 try {
-                    const { error } = await db.from('clientes').delete().eq('id', id);
-                    if (error) throw error;
+                    await db.from('clientes').delete().eq('id', id);
                     cargarDatos();
                 } catch (err) {
                     alert('❌ Error');
@@ -931,12 +762,11 @@
             }
         }
 
-        cargarDatos();
-        setHoyEnInput('add-fecha-inicio');
-        setHoyEnInput('app-fecha-pago');
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('add-fecha-inicio').valueAsDate = new Date();
+            document.getElementById('app-fecha-pago').valueAsDate = new Date();
+            cargarDatos();
+        });
     </script>
 </body>
 </html>
-```
-
-**Ahora copia ESTE CÓDIGO COMPLETO a GitHub en `admin.html` y recarga Vercel** 👇
