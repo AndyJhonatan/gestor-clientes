@@ -252,11 +252,13 @@
 </div>
 
 <script>
+// INICIALIZAR SUPABASE PRIMERO
 const URL = 'https://opmbftaczdrvizroaeew.supabase.co';
 const KEY = 'sb_publishable_Zv8dGqKjGDX7wedV7KLicA_hmtFRxPj';
 const { createClient } = window.supabase;
 const db = createClient(URL, KEY);
 
+// Variables globales
 let apps = [], clientes = [], appCorreos = {}, msgs = [];
 
 // Dark Mode
@@ -290,49 +292,6 @@ function fmt(d) {
     return d ? new Date(d).toLocaleDateString('es-PE') : '-';
 }
 
-// CARGAR DATOS DESDE SUPABASE
-async function cargarDatos() {
-    try {
-        console.log('Cargando datos...');
-        
-        const [appsRes, clientesRes, correosRes] = await Promise.all([
-            db.from('apps').select('*').order('id'),
-            db.from('clientes').select('*').order('fecha_registro', { ascending: false }),
-            db.from('app_correos').select('*')
-        ]);
-
-        apps = appsRes.data || [];
-        clientes = clientesRes.data || [];
-        
-        // Agrupar correos por app
-        appCorreos = {};
-        (correosRes.data || []).forEach(row => {
-            if (!appCorreos[row.app_id]) appCorreos[row.app_id] = [];
-            appCorreos[row.app_id].push(row.correo);
-        });
-
-        console.log('Apps:', apps);
-        console.log('Clientes:', clientes);
-        console.log('Correos:', appCorreos);
-
-        actualizar();
-    } catch (e) {
-        console.error('Error:', e);
-        alert('❌ Error al conectar: ' + e.message);
-    }
-}
-
-function actualizar() {
-    renderApps();
-    renderClientes();
-    renderSelects();
-    renderCompartidas();
-    renderGanancias();
-    renderMsgs();
-    renderDashboard();
-}
-
-// HELPERS
 function fid(id) { return document.getElementById(id); }
 
 function correosDeApp(appId) {
@@ -364,6 +323,41 @@ function llenarSelectApps(selectId, valor = '') {
         if (Number(a.id) === Number(valor)) o.selected = true;
         sel.appendChild(o);
     });
+}
+
+// CARGAR DATOS
+async function cargarDatos() {
+    try {
+        const [appsRes, clientesRes, correosRes] = await Promise.all([
+            db.from('apps').select('*'),
+            db.from('clientes').select('*').order('fecha_registro', { ascending: false }),
+            db.from('app_correos').select('*')
+        ]);
+
+        apps = appsRes.data || [];
+        clientes = clientesRes.data || [];
+        
+        appCorreos = {};
+        (correosRes.data || []).forEach(row => {
+            if (!appCorreos[row.app_id]) appCorreos[row.app_id] = [];
+            appCorreos[row.app_id].push(row.correo);
+        });
+
+        actualizar();
+    } catch (e) {
+        console.error('Error:', e);
+        alert('❌ Error al conectar: ' + e.message);
+    }
+}
+
+function actualizar() {
+    renderApps();
+    renderClientes();
+    renderSelects();
+    renderCompartidas();
+    renderGanancias();
+    renderMsgs();
+    renderDashboard();
 }
 
 // RENDERS
@@ -430,7 +424,6 @@ function renderSelects() {
         selCliente.appendChild(o);
     });
 
-    // Selects para compartidas
     const shApps = [fid('sh-app'), fid('sh-vista-app')];
     shApps.forEach(sel => {
         sel.innerHTML = '<option value="">--Selecciona--</option>';
@@ -491,7 +484,7 @@ function renderVista() {
     const clientesApp = clientes.filter(c => Number(c.app_id) === appId);
 
     if (!cs.length) {
-        vista.innerHTML = '<p style="margin-top: 12px; color: var(--light);">No hay correos en esta app. Agrégalos en "Gestionar Correos".</p>';
+        vista.innerHTML = '<p style="margin-top: 12px; color: var(--light);">No hay correos. Agrégalos en "Gestionar Correos".</p>';
         return;
     }
 
@@ -599,11 +592,8 @@ async function crearApp() {
     }
 
     try {
-        const { error } = await db.from('apps').insert([{
-            nombre, tipo, precio, cupos, inversion, fecha_pago
-        }]);
+        const { error } = await db.from('apps').insert([{ nombre, tipo, precio, cupos, inversion, fecha_pago }]);
         if (error) throw error;
-
         fid('a-nombre').value = '';
         fid('a-fpago').value = '';
         alert('✅ App creada');
@@ -629,20 +619,17 @@ async function agregarCliente() {
     try {
         const app = app_id ? apps.find(a => a.id === app_id) : null;
         const { error } = await db.from('clientes').insert([{
-            nombre, telefono, app: app ? app.nombre : null, app_id,
-            correo, fecha_inicio, fecha_pago,
+            nombre, telefono, app: app ? app.nombre : null, app_id, correo, fecha_inicio, fecha_pago,
             fecha_registro: new Date().toISOString(),
             wa_link: 'https://wa.me/' + telefono.replace(/\D/g, '')
         }]);
         if (error) throw error;
-
         fid('c-nombre').value = '';
         fid('c-tel').value = '';
         fid('c-app').value = '';
         fid('c-correo').value = '';
         fid('c-finicio').value = hoy();
         fid('c-fpago').value = '';
-        
         alert('✅ Cliente agregado');
         await cargarDatos();
     } catch (e) {
@@ -667,12 +654,10 @@ async function asignar() {
             app: app ? app.nombre : null, app_id, correo, fecha_pago
         }).eq('id', clienteId);
         if (error) throw error;
-
         fid('as-cli').value = '';
         fid('as-app').value = '';
         fid('as-correo').value = '';
         fid('as-fpago').value = '';
-
         alert('✅ Actualizado');
         await cargarDatos();
     } catch (e) {
@@ -680,25 +665,13 @@ async function asignar() {
     }
 }
 
-function cambioAppCliente() {
-    const appId = fid('c-app').value;
-    llenarSelectCorreos('c-correo', appId);
-}
-
-function cambioAppAsignar() {
-    const appId = fid('as-app').value;
-    llenarSelectCorreos('as-correo', appId);
-}
-
-function cambioAppEdit() {
-    const appId = fid('edit-app').value;
-    llenarSelectCorreos('edit-correo', appId);
-}
+function cambioAppCliente() { llenarSelectCorreos('c-correo', fid('c-app').value); }
+function cambioAppAsignar() { llenarSelectCorreos('as-correo', fid('as-app').value); }
+function cambioAppEdit() { llenarSelectCorreos('edit-correo', fid('edit-app').value); }
 
 function abrirEditar(id) {
     const c = clientes.find(x => x.id === id);
     if (!c) return;
-
     fid('edit-id').value = c.id;
     fid('edit-nombre').value = c.nombre || '';
     fid('edit-tel').value = c.telefono || '';
@@ -706,7 +679,6 @@ function abrirEditar(id) {
     fid('edit-fpago').value = c.fecha_pago ? c.fecha_pago.split('T')[0] : '';
     llenarSelectApps('edit-app', c.app_id);
     llenarSelectCorreos('edit-correo', c.app_id, c.correo);
-
     fid('modal-edit').classList.add('on');
 }
 
@@ -731,7 +703,6 @@ async function guardarEdicion() {
             wa_link: 'https://wa.me/' + telefono.replace(/\D/g, '')
         }).eq('id', id);
         if (error) throw error;
-
         cerrarModal('modal-edit');
         alert('✅ Guardado');
         await cargarDatos();
@@ -750,17 +721,13 @@ async function agregarCorreo() {
     }
 
     try {
-        const { error } = await db.from('app_correos').insert([{
-            app_id: parseInt(appId),
-            correo
-        }]);
+        const { error } = await db.from('app_correos').insert([{ app_id: parseInt(appId), correo }]);
         if (error) throw error;
-
         fid('sh-correo').value = '';
         alert('✅ Correo agregado');
         await cargarDatos();
     } catch (e) {
-        alert('❌ Error: ' + (e.message.includes('UNIQUE') ? 'Este correo ya existe para esta app' : e.message));
+        alert('❌ Error: ' + (e.message.includes('UNIQUE') ? 'Este correo ya existe' : e.message));
     }
 }
 
@@ -782,13 +749,7 @@ function agregarMsg() {
         alert('⚠️ Escribe un mensaje');
         return;
     }
-
-    msgs.unshift({
-        id: Date.now().toString(),
-        texto,
-        fecha: new Date().toLocaleString('es-PE')
-    });
-
+    msgs.unshift({ id: Date.now().toString(), texto, fecha: new Date().toLocaleString('es-PE') });
     localStorage.setItem('msgs', JSON.stringify(msgs));
     fid('msg-new').value = '';
     renderMsgs();
@@ -829,12 +790,11 @@ async function eliminarCliente(id) {
 }
 
 // INIT
-document.addEventListener('DOMContentLoaded', () => {
-    msgs = JSON.parse(localStorage.getItem('msgs') || '[]');
-    fid('c-finicio').value = hoy();
-    fid('a-fpago').value = hoy();
-    cargarDatos();
-});
+msgs = JSON.parse(localStorage.getItem('msgs') || '[]');
+fid('c-finicio').value = hoy();
+fid('a-fpago').value = hoy();
+cargarDatos();
 </script>
 </body>
 </html>
+ fix: admin v5 corregido - supabase init correcto
