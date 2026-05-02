@@ -31,12 +31,6 @@
         .modal-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
         .modal-buttons button { margin: 0; }
         .modal-buttons button.cancel { background: #ddd; color: #333; }
-        .modal-buttons button.cancel:hover { background: #ccc; }
-        .correos-info { background: #f0f0f0; padding: 10px; border-radius: 6px; margin: 8px 0; font-size: 12px; }
-        .correos-info .correo-item { background: white; padding: 6px; margin: 4px 0; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; }
-        .copy-btn { background: #667eea; color: white; border: none; padding: 3px 8px; border-radius: 3px; cursor: pointer; font-size: 10px; }
-        .copy-btn:hover { background: #5568d3; }
-        .copy-btn.copied { background: #28a745; }
     </style>
 </head>
 <body>
@@ -53,29 +47,19 @@
         <div id="form">
             <div class="form-group">
                 <label>Tu nombre completo *</label>
-                <input type="text" id="nombre" placeholder="Juan Pérez" required>
+                <input type="text" id="nombre" placeholder="Juan Pérez">
             </div>
 
             <div class="form-group">
                 <label>Tu teléfono WhatsApp *</label>
-                <input type="tel" id="telefono" placeholder="+51 999 999 999" required>
+                <input type="tel" id="telefono" placeholder="+51 999 999 999">
             </div>
 
             <div class="form-group">
                 <label>¿Qué app deseas? *</label>
-                <select id="app-elegida" onchange="actualizarCorreos()">
+                <select id="app-elegida">
                     <option value="">--Selecciona una app--</option>
                 </select>
-            </div>
-
-            <div id="correos-container" style="display: none;">
-                <div class="form-group">
-                    <label>Correo disponible (si es compartida) *</label>
-                    <select id="correo-elegido">
-                        <option value="">--Selecciona un correo--</option>
-                    </select>
-                </div>
-                <div id="info-correos" class="correos-info" style="display: none;"></div>
             </div>
 
             <button id="btn-registrar" onclick="registrar()">Registrarme</button>
@@ -87,7 +71,6 @@
         </div>
     </div>
 
-    <!-- Modal de contraseña -->
     <div id="modal-admin" class="modal">
         <div class="modal-content">
             <h2>🔐 Acceso Admin</h2>
@@ -108,14 +91,12 @@
         const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let apps = [];
-        let appCorreos = {};
 
         async function cargarApps() {
             try {
                 const { data, error } = await db.from('apps').select('*');
                 if (error) throw error;
                 apps = data || [];
-                appCorreos = JSON.parse(localStorage.getItem('appCorreos')) || {};
                 renderApps();
             } catch (err) {
                 console.error('Error:', err);
@@ -133,66 +114,13 @@
             });
         }
 
-        function actualizarCorreos() {
-            const appId = document.getElementById('app-elegida').value;
-            const correosContainer = document.getElementById('correos-container');
-            const correosSelect = document.getElementById('correo-elegido');
-            const infoCorreos = document.getElementById('info-correos');
-
-            correosSelect.innerHTML = '<option value="">--Selecciona un correo--</option>';
-            infoCorreos.style.display = 'none';
-
-            if (!appId) {
-                correosContainer.style.display = 'none';
-                return;
-            }
-
-            const app = apps.find(a => a.id == appId);
-            const correos = appCorreos[appId] || [];
-
-            if (app && app.tipo === 'shared' && correos.length > 0) {
-                correosContainer.style.display = 'block';
-                correos.forEach(correo => {
-                    const option = document.createElement('option');
-                    option.value = correo;
-                    option.textContent = correo;
-                    correosSelect.appendChild(option);
-                });
-
-                let html = '<strong>📧 Correos disponibles:</strong><br>';
-                correos.forEach(correo => {
-                    html += `<div class="correo-item">
-                        <span>${correo}</span>
-                        <button class="copy-btn" onclick="copiarCorreo('${correo}')">📋 Copiar</button>
-                    </div>`;
-                });
-                infoCorreos.innerHTML = html;
-                infoCorreos.style.display = 'block';
-            } else {
-                correosContainer.style.display = 'none';
-            }
-        }
-
-        function copiarCorreo(correo) {
-            navigator.clipboard.writeText(correo).then(() => {
-                alert('✅ Correo copiado');
-            });
-        }
-
         async function registrar() {
             const nombre = document.getElementById('nombre').value.trim();
             const telefono = document.getElementById('telefono').value.trim();
-            const appId = document.getElementById('app-elegida').value;
-            const correo = document.getElementById('correo-elegido').value;
+            const appId = parseInt(document.getElementById('app-elegida').value);
 
             if (!nombre || !telefono || !appId) {
                 alert('⚠️ Completa todos los campos');
-                return;
-            }
-
-            const app = apps.find(a => a.id == appId);
-            if (app && app.tipo === 'shared' && !correo) {
-                alert('⚠️ Selecciona un correo');
                 return;
             }
 
@@ -201,6 +129,9 @@
                 btn.disabled = true;
                 btn.textContent = 'Registrando...';
 
+                const app = apps.find(a => a.id === appId);
+                const telefonoLimpio = telefono.replace(/[^0-9]/g, '');
+
                 const { data, error } = await db
                     .from('clientes')
                     .insert([{
@@ -208,8 +139,7 @@
                         telefono,
                         app: app.nombre,
                         app_id: appId,
-                        correo: correo || null,
-                        wa_link: `https://wa.me/${telefono.replace(/[^0-9]/g, '')}`,
+                        wa_link: `https://wa.me/${telefonoLimpio}`,
                         fecha_registro: new Date().toISOString()
                     }]);
 
@@ -220,7 +150,7 @@
 
             } catch (err) {
                 console.error('Error:', err);
-                alert('❌ Error al registrar: ' + err.message);
+                alert('❌ Error: ' + err.message);
                 document.getElementById('btn-registrar').disabled = false;
                 document.getElementById('btn-registrar').textContent = 'Registrarme';
             }
