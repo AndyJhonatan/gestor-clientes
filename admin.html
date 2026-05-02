@@ -3,47 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Admin - Gestor Clientes</title>
+    <title>Panel Admin - Gestor Clientes v2</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; }
-        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
-        header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px; border-radius: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        
+        :root {
+            --bg: #f5f5f5;
+            --bg-card: white;
+            --text: #333;
+            --text-light: #666;
+            --border: #ddd;
+            --primary: #667eea;
+            --primary-dark: #5568d3;
+            --success: #d4edda;
+            --danger: #dc3545;
+        }
+        
+        body.dark-mode {
+            --bg: #1a1a1a;
+            --bg-card: #2d2d2d;
+            --text: #e0e0e0;
+            --text-light: #b0b0b0;
+            --border: #444;
+            --primary: #667eea;
+        }
+        
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); transition: 0.3s; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        
+        header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px; border-radius: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
         header h1 { font-size: 24px; }
+        
+        .header-buttons { display: flex; gap: 10px; }
+        .btn-dark-mode { background: rgba(255,255,255,0.2); padding: 8px 16px; border: 1px solid white; color: white; border-radius: 6px; cursor: pointer; font-weight: 600; }
+        .btn-dark-mode:hover { background: rgba(255,255,255,0.3); }
         .logout-btn { background: rgba(255,255,255,0.2); padding: 8px 16px; border: 1px solid white; color: white; border-radius: 6px; cursor: pointer; font-weight: 600; }
         .logout-btn:hover { background: rgba(255,255,255,0.3); }
+        
         .tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-        .tab-btn { padding: 10px 15px; background: #ddd; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: 0.3s; }
-        .tab-btn.active { background: #667eea; color: white; }
+        .tab-btn { padding: 10px 15px; background: var(--bg-card); border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: 0.3s; color: var(--text); }
+        .tab-btn.active { background: var(--primary); color: white; }
+        
         .content { display: none; }
         .content.active { display: block; }
-        .card { background: white; padding: 20px; border-radius: 10px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
-        .card h2 { margin-bottom: 15px; color: #333; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; }
+        
+        .card { background: var(--bg-card); padding: 20px; border-radius: 10px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: 1px solid var(--border); }
+        .card h2 { margin-bottom: 15px; color: var(--text); border-bottom: 2px solid var(--border); padding-bottom: 10px; }
+        .card h3 { margin: 15px 0 10px 0; color: var(--text); }
+        
         .form-group { margin-bottom: 12px; }
-        label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px; color: #333; }
-        input, select { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; }
-        input:focus, select:focus { outline: none; border-color: #667eea; }
-        button { padding: 8px 16px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; }
-        button:hover { background: #5568d3; }
-        button.danger { background: #dc3545; }
+        label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px; color: var(--text); }
+        input, select, textarea { width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; background: var(--bg); color: var(--text); }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); }
+        
+        button { padding: 8px 16px; background: var(--primary); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.3s; }
+        button:hover { background: var(--primary-dark); }
+        button.danger { background: var(--danger); }
         button.danger:hover { background: #c82333; }
-        .table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
-        .table th { background: #f8f9fa; padding: 10px; text-align: left; font-weight: 600; border-bottom: 2px solid #ddd; }
-        .table td { padding: 10px; border-bottom: 1px solid #ddd; }
-        .table tr:hover { background: #f9f9f9; }
-        .btn-small { padding: 4px 8px; font-size: 11px; margin-right: 3px; }
-        .wa-link { color: #25d366; font-weight: 600; text-decoration: none; cursor: pointer; }
-        .wa-link:hover { text-decoration: underline; }
+        button.small { padding: 4px 8px; font-size: 11px; }
+        
         .row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .row.triple { grid-template-columns: 1fr 1fr 1fr; }
+        
+        .table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
+        .table th { background: var(--border); padding: 10px; text-align: left; font-weight: 600; border-bottom: 2px solid var(--border); color: var(--text); }
+        .table td { padding: 10px; border-bottom: 1px solid var(--border); color: var(--text); }
+        .table tr:hover { background: var(--border); }
+        
         .metric { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px; border-radius: 8px; text-align: center; }
         .metric-value { font-size: 24px; font-weight: bold; }
         .metric-label { font-size: 11px; opacity: 0.9; margin-top: 5px; }
+        
         .alert { padding: 12px; border-radius: 6px; margin-bottom: 15px; font-size: 12px; background: #d1ecf1; color: #0c5460; }
-        @media (max-width: 768px) { 
+        
+        .copy-btn { background: #667eea; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; }
+        .copy-btn:hover { background: #5568d3; }
+        .copy-btn.copied { background: #28a745; }
+        
+        .app-type { display: inline-block; padding: 2px 6px; border-radius: 3px; font-size: 10px; font-weight: 600; }
+        .app-type.personal { background: #e2e3e5; color: #383d41; }
+        .app-type.shared { background: #d1ecf1; color: #0c5460; }
+        
+        .correo-item { background: var(--border); padding: 8px; border-radius: 4px; margin: 4px 0; display: flex; justify-content: space-between; align-items: center; }
+        
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+        .modal.active { display: flex; }
+        .modal-content { background: var(--bg-card); padding: 30px; border-radius: 10px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; }
+        .modal-content h2 { margin-bottom: 20px; color: var(--text); }
+        .modal-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+        .modal-buttons button { margin: 0; }
+        
+        @media (max-width: 768px) {
             .row { grid-template-columns: 1fr; }
             .row.triple { grid-template-columns: 1fr; }
+            header { flex-direction: column; text-align: center; }
         }
     </style>
 </head>
@@ -51,16 +105,20 @@
     <div class="container">
         <header>
             <div>
-                <h1>👨‍💼 Panel Admin</h1>
+                <h1>👨‍💼 Panel Admin v2.0</h1>
                 <p>🟢 Conectado en tiempo real</p>
             </div>
-            <button class="logout-btn" onclick="logout()">Cerrar Sesión</button>
+            <div class="header-buttons">
+                <button class="btn-dark-mode" onclick="toggleDarkMode()">🌙 Modo Oscuro</button>
+                <button class="logout-btn" onclick="logout()">Cerrar Sesión</button>
+            </div>
         </header>
 
         <div class="tabs">
             <button class="tab-btn active" onclick="tab('inicio')">Inicio</button>
             <button class="tab-btn" onclick="tab('apps')">Apps</button>
             <button class="tab-btn" onclick="tab('clientes')">Clientes</button>
+            <button class="tab-btn" onclick="tab('asignar')">Asignar</button>
         </div>
 
         <!-- INICIO -->
@@ -84,7 +142,7 @@
                 <h2>👥 Clientes Recientes</h2>
                 <table class="table">
                     <thead>
-                        <tr><th>Nombre</th><th>Teléfono</th><th>App</th><th>WhatsApp</th></tr>
+                        <tr><th>Nombre</th><th>Teléfono</th><th>App</th><th>Correo</th><th>Inicio</th><th>Pago</th></tr>
                     </thead>
                     <tbody id="clientes-recientes"></tbody>
                 </table>
@@ -93,9 +151,7 @@
 
         <!-- APPS -->
         <div id="apps" class="content">
-            <div class="alert">
-                📌 Crea tus apps aquí.
-            </div>
+            <div class="alert">📌 Crea y gestiona tus apps aquí. Diferencia entre personales y compartidas.</div>
 
             <div class="card">
                 <h2>➕ Crear Nueva App</h2>
@@ -105,8 +161,11 @@
                         <input type="text" id="app-nombre" placeholder="Netflix, Disney, ChatGPT...">
                     </div>
                     <div class="form-group">
-                        <label>Correo</label>
-                        <input type="email" id="app-correo" placeholder="admin@app.com">
+                        <label>Tipo *</label>
+                        <select id="app-tipo">
+                            <option value="personal">Personal</option>
+                            <option value="shared">Compartida</option>
+                        </select>
                     </div>
                 </div>
                 <div class="row">
@@ -115,7 +174,7 @@
                         <input type="number" id="app-precio" value="10" min="1">
                     </div>
                     <div class="form-group">
-                        <label>Cupos</label>
+                        <label>Cupos (si es compartida)</label>
                         <input type="number" id="app-cupos" value="18" min="1">
                     </div>
                 </div>
@@ -126,7 +185,7 @@
                 <h2>📱 Mis Apps</h2>
                 <table class="table">
                     <thead>
-                        <tr><th>App</th><th>Correo</th><th>Precio</th><th>Cupos</th><th>Clientes</th><th>Acción</th></tr>
+                        <tr><th>App</th><th>Tipo</th><th>Precio</th><th>Cupos</th><th>Clientes</th><th>Acción</th></tr>
                     </thead>
                     <tbody id="apps-tabla"></tbody>
                 </table>
@@ -135,9 +194,64 @@
 
         <!-- CLIENTES -->
         <div id="clientes" class="content">
+            <div class="alert">👥 Agregar clientes manualmente o ver los registrados.</div>
+
             <div class="card">
-                <h2>➕ Asignar App a Cliente</h2>
-                <p style="font-size: 12px; color: #666; margin-bottom: 15px;">Selecciona un cliente y asígna su app</p>
+                <h2>➕ Agregar Cliente Manualmente</h2>
+                <div class="row">
+                    <div class="form-group">
+                        <label>Nombre *</label>
+                        <input type="text" id="add-nombre" placeholder="Juan Pérez">
+                    </div>
+                    <div class="form-group">
+                        <label>Teléfono *</label>
+                        <input type="tel" id="add-telefono" placeholder="+51 999 999 999">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group">
+                        <label>App *</label>
+                        <select id="add-app">
+                            <option value="">--Selecciona--</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Correo (si es compartida)</label>
+                        <select id="add-correo">
+                            <option value="">--Selecciona--</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group">
+                        <label>Fecha Inicio</label>
+                        <input type="date" id="add-fecha-inicio">
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha Pago</label>
+                        <input type="date" id="add-fecha-pago">
+                    </div>
+                </div>
+                <button onclick="agregarClienteManual()" style="width: 100%;">✅ Agregar Cliente</button>
+            </div>
+
+            <div class="card">
+                <h2>👥 Todos los Clientes</h2>
+                <table class="table">
+                    <thead>
+                        <tr><th>Nombre</th><th>Teléfono</th><th>App</th><th>Correo</th><th>Inicio</th><th>Pago</th><th>WhatsApp</th><th>Acción</th></tr>
+                    </thead>
+                    <tbody id="clientes-tabla"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ASIGNAR -->
+        <div id="asignar" class="content">
+            <div class="alert">🔗 Asigna apps a clientes o mira los clientes por app.</div>
+
+            <div class="card">
+                <h2>🔗 Asignar App a Cliente</h2>
                 <div class="row">
                     <div class="form-group">
                         <label>Cliente *</label>
@@ -147,45 +261,91 @@
                     </div>
                     <div class="form-group">
                         <label>App *</label>
-                        <select id="app-select">
+                        <select id="app-select" onchange="actualizarCorreos()">
                             <option value="">--Selecciona--</option>
                         </select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group">
+                        <label>Correo (si es compartida)</label>
+                        <select id="correo-select">
+                            <option value="">--Selecciona--</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha Pago</label>
+                        <input type="date" id="asign-fecha-pago">
                     </div>
                 </div>
                 <button onclick="asignarApp()" style="width: 100%;">✅ Asignar</button>
             </div>
 
             <div class="card">
-                <h2>👥 Todos los Clientes</h2>
+                <h2>📱 Ver Clientes por App</h2>
+                <div class="form-group">
+                    <label>Selecciona una app *</label>
+                    <select id="app-filter" onchange="filtrarClientesPorApp()">
+                        <option value="">--Todas--</option>
+                    </select>
+                </div>
                 <table class="table">
                     <thead>
-                        <tr><th>Nombre</th><th>Teléfono</th><th>App</th><th>Fecha</th><th>WhatsApp</th><th>Acción</th></tr>
+                        <tr><th>Nombre</th><th>Teléfono</th><th>Correo</th><th>Pago</th><th>WhatsApp</th></tr>
                     </thead>
-                    <tbody id="clientes-tabla"></tbody>
+                    <tbody id="clientes-por-app"></tbody>
                 </table>
             </div>
+        </div>
+    </div>
+
+    <!-- MODAL CORREOS -->
+    <div id="modal-correos" class="modal">
+        <div class="modal-content">
+            <h2>📧 Gestionar Correos: <span id="modal-app-name"></span></h2>
+            <div id="correos-list"></div>
+            <div class="form-group">
+                <label>Agregar nuevo correo *</label>
+                <input type="email" id="nuevo-correo" placeholder="usuario@gmail.com">
+            </div>
+            <button onclick="agregarCorreo()" style="width: 100%; margin-top: 10px;">➕ Agregar</button>
+            <button onclick="cerrarModalCorreos()" style="width: 100%; margin-top: 10px; background: #6c757d;">Cerrar</button>
         </div>
     </div>
 
     <script>
         const SUPABASE_URL = 'https://opmbftaczdrvizroaeew.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_Zv8dGqKjGDX7wedV7KLicA_hmtFRxPj';
+        const CONTRASEÑA_ADMIN = '552083Aa';
         
         const { createClient } = window.supabase;
-        const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_KEY);
+        const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let apps = [];
         let clientes = [];
+        let appCorreos = {};
+        let appSeleccionadaParaCorreos = null;
+
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+        }
+
+        if (localStorage.getItem('darkMode') === 'true') {
+            document.body.classList.add('dark-mode');
+        }
 
         async function cargarDatos() {
             try {
-                const { data: appsData, error: appsError } = await supabaseAdmin.from('apps').select('*');
+                const { data: appsData, error: appsError } = await db.from('apps').select('*');
                 if (appsError) throw appsError;
                 apps = appsData || [];
 
-                const { data: clientesData, error: clientesError } = await supabaseAdmin.from('clientes').select('*');
+                const { data: clientesData, error: clientesError } = await db.from('clientes').select('*');
                 if (clientesError) throw clientesError;
                 clientes = clientesData || [];
+
+                appCorreos = JSON.parse(localStorage.getItem('appCorreos')) || {};
 
                 actualizar();
             } catch (err) {
@@ -203,25 +363,24 @@
 
         async function agregarApp() {
             const nombre = document.getElementById('app-nombre').value.trim();
+            const tipo = document.getElementById('app-tipo').value;
             if (!nombre) {
                 alert('⚠️ Completa el nombre');
                 return;
             }
 
             try {
-                const { data, error } = await supabaseAdmin
-                    .from('apps')
-                    .insert([{
-                        nombre,
-                        correo: document.getElementById('app-correo').value,
-                        precio: parseInt(document.getElementById('app-precio').value) || 10,
-                        cupos: parseInt(document.getElementById('app-cupos').value) || 18
-                    }]);
+                const { data, error } = await db.from('apps').insert([{
+                    nombre,
+                    tipo,
+                    precio: parseInt(document.getElementById('app-precio').value) || 10,
+                    cupos: tipo === 'shared' ? parseInt(document.getElementById('app-cupos').value) || 18 : null
+                }]);
 
                 if (error) throw error;
 
                 document.getElementById('app-nombre').value = '';
-                document.getElementById('app-correo').value = '';
+                document.getElementById('app-tipo').value = 'personal';
                 document.getElementById('app-precio').value = '10';
                 document.getElementById('app-cupos').value = '18';
 
@@ -233,23 +392,92 @@
             }
         }
 
+        async function agregarClienteManual() {
+            const nombre = document.getElementById('add-nombre').value.trim();
+            const telefono = document.getElementById('add-telefono').value.trim();
+            const appId = document.getElementById('add-app').value;
+            const correo = document.getElementById('add-correo').value;
+            const fechaInicio = document.getElementById('add-fecha-inicio').value;
+            const fechaPago = document.getElementById('add-fecha-pago').value;
+
+            if (!nombre || !telefono || !appId) {
+                alert('⚠️ Completa los campos requeridos');
+                return;
+            }
+
+            try {
+                const app = apps.find(a => a.id == appId);
+                
+                const { error } = await db.from('clientes').insert([{
+                    nombre,
+                    telefono,
+                    app: app.nombre,
+                    app_id: appId,
+                    correo: correo || null,
+                    wa_link: `https://wa.me/${telefono.replace(/[^0-9]/g, '')}`,
+                    fecha_inicio: fechaInicio || null,
+                    fecha_pago: fechaPago || null,
+                    fecha_registro: new Date().toISOString()
+                }]);
+
+                if (error) throw error;
+
+                document.getElementById('add-nombre').value = '';
+                document.getElementById('add-telefono').value = '';
+                document.getElementById('add-app').value = '';
+                document.getElementById('add-correo').value = '';
+                document.getElementById('add-fecha-inicio').value = '';
+                document.getElementById('add-fecha-pago').value = '';
+
+                alert('✅ Cliente agregado');
+                cargarDatos();
+            } catch (err) {
+                console.error('Error:', err);
+                alert('❌ Error al agregar cliente');
+            }
+        }
+
+        function actualizarCorreos() {
+            const appId = document.getElementById('app-select').value;
+            const correosSelect = document.getElementById('correo-select');
+            
+            correosSelect.innerHTML = '<option value="">--Selecciona--</option>';
+
+            if (appId) {
+                const correosList = appCorreos[appId] || [];
+                correosList.forEach(correo => {
+                    const option = document.createElement('option');
+                    option.value = correo;
+                    option.textContent = correo;
+                    correosSelect.appendChild(option);
+                });
+            }
+        }
+
         async function asignarApp() {
             const clienteId = document.getElementById('cliente-select').value;
             const appId = document.getElementById('app-select').value;
+            const correo = document.getElementById('correo-select').value;
+            const fechaPago = document.getElementById('asign-fecha-pago').value;
 
             if (!clienteId || !appId) {
                 alert('⚠️ Selecciona cliente y app');
                 return;
             }
 
-            const cliente = clientes.find(c => c.id === parseInt(clienteId));
-            const app = apps.find(a => a.id === parseInt(appId));
+            const cliente = clientes.find(c => c.id == clienteId);
+            const app = apps.find(a => a.id == appId);
 
             if (cliente && app) {
                 try {
-                    const { error } = await supabaseAdmin
+                    const { error } = await db
                         .from('clientes')
-                        .update({ app: app.nombre })
+                        .update({ 
+                            app: app.nombre,
+                            app_id: appId,
+                            correo: correo || null,
+                            fecha_pago: fechaPago || null
+                        })
                         .eq('id', cliente.id);
 
                     if (error) throw error;
@@ -262,27 +490,58 @@
             }
         }
 
+        function filtrarClientesPorApp() {
+            const appId = document.getElementById('app-filter').value;
+            const tbody = document.getElementById('clientes-por-app');
+
+            let filtrados = clientes;
+            if (appId) {
+                filtrados = clientes.filter(c => c.app_id == appId);
+            }
+
+            if (filtrados.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color: var(--text-light);">Sin clientes</td></tr>';
+            } else {
+                tbody.innerHTML = filtrados.map(c => `<tr>
+                    <td>${c.nombre}</td>
+                    <td>${c.telefono}</td>
+                    <td>${c.correo || '-'}</td>
+                    <td>${c.fecha_pago ? new Date(c.fecha_pago).toLocaleDateString() : '-'}</td>
+                    <td><a href="${c.wa_link}" style="color: #25d366; text-decoration: none;" target="_blank">💬 Abrir</a></td>
+                </tr>`).join('');
+            }
+        }
+
         function renderApps() {
             const tbody = document.getElementById('apps-tabla');
-            const select = document.getElementById('app-select');
+            const select = document.getElementById('add-app');
+            const selectFilter = document.getElementById('app-filter');
+            const appSelect = document.getElementById('app-select');
 
             if (apps.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#999;">Sin apps</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color: var(--text-light);">Sin apps</td></tr>';
                 select.innerHTML = '<option value="">--Selecciona--</option>';
             } else {
                 tbody.innerHTML = apps.map(a => {
-                    const clientesApp = clientes.filter(c => c.app === a.nombre).length;
+                    const clientesApp = clientes.filter(c => c.app_id === a.id).length;
                     return `<tr>
                         <td><strong>${a.nombre}</strong></td>
-                        <td>${a.correo || '-'}</td>
+                        <td><span class="app-type ${a.tipo}">${a.tipo.toUpperCase()}</span></td>
                         <td>S/ ${a.precio}</td>
-                        <td>${a.cupos}</td>
+                        <td>${a.cupos || '-'}</td>
                         <td>${clientesApp}</td>
-                        <td><button class="btn-small danger" onclick="eliminarApp(${a.id})">🗑️</button></td>
+                        <td>
+                            ${a.tipo === 'shared' ? `<button class="small" onclick="abrirModalCorreos(${a.id}, '${a.nombre}')">📧</button>` : ''}
+                            <button class="small danger" onclick="eliminarApp(${a.id})">🗑️</button>
+                        </td>
                     </tr>`;
                 }).join('');
 
                 select.innerHTML = '<option value="">--Selecciona--</option>' +
+                    apps.map(a => `<option value="${a.id}">${a.nombre}</option>`).join('');
+                selectFilter.innerHTML = '<option value="">--Todas--</option>' +
+                    apps.map(a => `<option value="${a.id}">${a.nombre}</option>`).join('');
+                appSelect.innerHTML = '<option value="">--Selecciona--</option>' +
                     apps.map(a => `<option value="${a.id}">${a.nombre}</option>`).join('');
             }
 
@@ -295,24 +554,28 @@
             const select = document.getElementById('cliente-select');
 
             if (clientes.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#999;">Sin clientes</td></tr>';
-                recientes.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#999;">Sin clientes</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color: var(--text-light);">Sin clientes</td></tr>';
+                recientes.innerHTML = '<tr><td colspan="6" style="text-align:center;color: var(--text-light);">Sin clientes</td></tr>';
                 select.innerHTML = '<option value="">--Selecciona--</option>';
             } else {
                 tbody.innerHTML = clientes.map(c => `<tr>
                     <td>${c.nombre}</td>
                     <td>${c.telefono}</td>
                     <td>${c.app}</td>
-                    <td>${new Date(c.fecha_registro).toLocaleDateString()}</td>
-                    <td><a href="${c.wa_link}" class="wa-link" target="_blank">💬 Abrir</a></td>
-                    <td><button class="btn-small danger" onclick="eliminarCliente(${c.id})">🗑️</button></td>
+                    <td>${c.correo || '-'}</td>
+                    <td>${c.fecha_inicio ? new Date(c.fecha_inicio).toLocaleDateString() : '-'}</td>
+                    <td>${c.fecha_pago ? new Date(c.fecha_pago).toLocaleDateString() : '-'}</td>
+                    <td><a href="${c.wa_link}" style="color: #25d366; text-decoration: none;" target="_blank">💬 Abrir</a></td>
+                    <td><button class="small danger" onclick="eliminarCliente(${c.id})">🗑️</button></td>
                 </tr>`).join('');
 
                 recientes.innerHTML = clientes.slice(-5).reverse().map(c => `<tr>
                     <td>${c.nombre}</td>
                     <td>${c.telefono}</td>
                     <td>${c.app}</td>
-                    <td><a href="${c.wa_link}" class="wa-link" target="_blank">💬 Abrir</a></td>
+                    <td>${c.correo || '-'}</td>
+                    <td>${c.fecha_inicio ? new Date(c.fecha_inicio).toLocaleDateString() : '-'}</td>
+                    <td>${c.fecha_pago ? new Date(c.fecha_pago).toLocaleDateString() : '-'}</td>
                 </tr>`).join('');
 
                 select.innerHTML = '<option value="">--Selecciona--</option>' +
@@ -322,11 +585,67 @@
             document.getElementById('total-clientes').textContent = clientes.length;
         }
 
+        function abrirModalCorreos(appId, appName) {
+            appSeleccionadaParaCorreos = appId;
+            document.getElementById('modal-app-name').textContent = appName;
+            renderCorreos();
+            document.getElementById('modal-correos').classList.add('active');
+        }
+
+        function cerrarModalCorreos() {
+            document.getElementById('modal-correos').classList.remove('active');
+            document.getElementById('nuevo-correo').value = '';
+        }
+
+        function renderCorreos() {
+            const list = document.getElementById('correos-list');
+            const correos = appCorreos[appSeleccionadaParaCorreos] || [];
+
+            if (correos.length === 0) {
+                list.innerHTML = '<p style="color: var(--text-light); text-align: center;">Sin correos agregados</p>';
+            } else {
+                list.innerHTML = correos.map((correo, idx) => `<div class="correo-item">
+                    <span>${correo}</span>
+                    <button class="small danger" onclick="eliminarCorreo(${idx})">🗑️</button>
+                </div>`).join('');
+            }
+        }
+
+        function agregarCorreo() {
+            const correo = document.getElementById('nuevo-correo').value.trim();
+
+            if (!correo) {
+                alert('⚠️ Ingresa un correo');
+                return;
+            }
+
+            if (!appCorreos[appSeleccionadaParaCorreos]) {
+                appCorreos[appSeleccionadaParaCorreos] = [];
+            }
+
+            appCorreos[appSeleccionadaParaCorreos].push(correo);
+            localStorage.setItem('appCorreos', JSON.stringify(appCorreos));
+
+            document.getElementById('nuevo-correo').value = '';
+            renderCorreos();
+            alert('✅ Correo agregado');
+        }
+
+        function eliminarCorreo(idx) {
+            if (confirm('¿Eliminar?')) {
+                appCorreos[appSeleccionadaParaCorreos].splice(idx, 1);
+                localStorage.setItem('appCorreos', JSON.stringify(appCorreos));
+                renderCorreos();
+            }
+        }
+
         async function eliminarApp(id) {
             if (confirm('¿Eliminar?')) {
                 try {
-                    const { error } = await supabaseAdmin.from('apps').delete().eq('id', id);
+                    const { error } = await db.from('apps').delete().eq('id', id);
                     if (error) throw error;
+                    delete appCorreos[id];
+                    localStorage.setItem('appCorreos', JSON.stringify(appCorreos));
                     cargarDatos();
                 } catch (err) {
                     alert('❌ Error al eliminar');
@@ -337,7 +656,7 @@
         async function eliminarCliente(id) {
             if (confirm('¿Eliminar?')) {
                 try {
-                    const { error } = await supabaseAdmin.from('clientes').delete().eq('id', id);
+                    const { error } = await db.from('clientes').delete().eq('id', id);
                     if (error) throw error;
                     cargarDatos();
                 } catch (err) {
@@ -348,7 +667,7 @@
 
         function actualizarDashboard() {
             const ingresoTotal = clientes.reduce((sum, c) => {
-                const app = apps.find(a => a.nombre === c.app);
+                const app = apps.find(a => a.id === c.app_id);
                 return sum + (app ? app.precio : 0);
             }, 0);
             document.getElementById('ingreso-total').textContent = 'S/ ' + ingresoTotal;
@@ -357,6 +676,7 @@
         function actualizar() {
             renderApps();
             renderClientes();
+            filtrarClientesPorApp();
             actualizarDashboard();
         }
 
