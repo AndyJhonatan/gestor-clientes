@@ -21,12 +21,14 @@
         .card h2 { margin-bottom: 15px; color: #333; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; }
         .form-group { margin-bottom: 12px; }
         label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px; color: #333; }
-        input, select { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; }
-        input:focus, select:focus { outline: none; border-color: #667eea; }
-        button { padding: 8px 16px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; }
+        input, select, textarea { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; font-family: inherit; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
+        button { padding: 8px 16px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.3s; }
         button:hover { background: #5568d3; }
         button.danger { background: #dc3545; }
         button.danger:hover { background: #c82333; }
+        button.success { background: #28a745; }
+        button.success:hover { background: #218838; }
         .table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
         .table th { background: #f8f9fa; padding: 10px; text-align: left; font-weight: 600; border-bottom: 2px solid #ddd; }
         .table td { padding: 10px; border-bottom: 1px solid #ddd; }
@@ -40,6 +42,10 @@
         .metric-value { font-size: 24px; font-weight: bold; }
         .metric-label { font-size: 11px; opacity: 0.9; margin-top: 5px; }
         .alert { padding: 12px; border-radius: 6px; margin-bottom: 15px; font-size: 12px; background: #d1ecf1; color: #0c5460; }
+        .app-item { background: #f8f9fa; padding: 12px; border-radius: 6px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .app-info { flex: 1; }
+        .app-info strong { display: block; margin-bottom: 3px; }
+        .app-info small { color: #666; display: block; }
         @media (max-width: 768px) { 
             .row { grid-template-columns: 1fr; }
             .row.triple { grid-template-columns: 1fr; }
@@ -93,7 +99,7 @@
         <!-- APPS -->
         <div id="apps" class="content">
             <div class="alert">
-                📌 Primero crea tus apps. Luego asigna a los clientes.
+                📌 Crea tus apps aquí. Los clientes las verán en el registro.
             </div>
 
             <div class="card">
@@ -134,26 +140,6 @@
 
         <!-- CLIENTES -->
         <div id="clientes" class="content">
-            <div class="card">
-                <h2>➕ Asignar App a Cliente</h2>
-                <p style="font-size: 12px; color: #666; margin-bottom: 15px;">Selecciona un cliente y asígna su app</p>
-                <div class="row">
-                    <div class="form-group">
-                        <label>Cliente *</label>
-                        <select id="cliente-select">
-                            <option value="">--Selecciona--</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>App *</label>
-                        <select id="app-select">
-                            <option value="">--Selecciona--</option>
-                        </select>
-                    </div>
-                </div>
-                <button onclick="asignarApp()" style="width: 100%;">✅ Asignar</button>
-            </div>
-
             <div class="card">
                 <h2>👥 Todos los Clientes</h2>
                 <table class="table">
@@ -209,33 +195,11 @@
             actualizar();
         }
 
-        function asignarApp() {
-            const clienteId = document.getElementById('cliente-select').value;
-            const appId = document.getElementById('app-select').value;
-
-            if (!clienteId || !appId) {
-                alert('⚠️ Selecciona cliente y app');
-                return;
-            }
-
-            const cliente = clientes.find(c => c.id === parseInt(clienteId));
-            const app = apps.find(a => a.id === parseInt(appId));
-
-            if (cliente && app) {
-                cliente.app = app.nombre;
-                guardar();
-                alert('✅ App asignada');
-                actualizar();
-            }
-        }
-
         function renderApps() {
             const tbody = document.getElementById('apps-tabla');
-            const select = document.getElementById('app-select');
 
             if (apps.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#999;">Sin apps</td></tr>';
-                select.innerHTML = '<option value="">--Selecciona--</option>';
             } else {
                 tbody.innerHTML = apps.map(a => {
                     const clientesApp = clientes.filter(c => c.app === a.nombre).length;
@@ -248,9 +212,6 @@
                         <td><button class="btn-small danger" onclick="eliminarApp(${a.id})">🗑️</button></td>
                     </tr>`;
                 }).join('');
-
-                select.innerHTML = '<option value="">--Selecciona--</option>' +
-                    apps.map(a => `<option value="${a.id}">${a.nombre}</option>`).join('');
             }
 
             document.getElementById('total-apps').textContent = apps.length;
@@ -259,12 +220,10 @@
         function renderClientes() {
             const tbody = document.getElementById('clientes-tabla');
             const recientes = document.getElementById('clientes-recientes');
-            const select = document.getElementById('cliente-select');
 
             if (clientes.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#999;">Sin clientes</td></tr>';
                 recientes.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#999;">Sin clientes</td></tr>';
-                select.innerHTML = '<option value="">--Selecciona--</option>';
             } else {
                 tbody.innerHTML = clientes.map(c => `<tr>
                     <td>${c.nombre}</td>
@@ -281,9 +240,6 @@
                     <td>${c.app}</td>
                     <td><a href="${c.wa_link}" class="wa-link" target="_blank">💬 Abrir</a></td>
                 </tr>`).join('');
-
-                select.innerHTML = '<option value="">--Selecciona--</option>' +
-                    clientes.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
             }
 
             document.getElementById('total-clientes').textContent = clientes.length;
@@ -326,6 +282,15 @@
         }
 
         actualizar();
+
+        // Escuchar cambios desde otra pestaña
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'clientes' || e.key === 'apps') {
+                clientes = JSON.parse(localStorage.getItem('clientes')) || [];
+                apps = JSON.parse(localStorage.getItem('apps')) || [];
+                actualizar();
+            }
+        });
     </script>
 </body>
 </html>
