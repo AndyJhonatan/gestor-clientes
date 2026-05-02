@@ -14,8 +14,8 @@
         p { color: #666; margin-bottom: 20px; }
         .form-group { margin-bottom: 15px; }
         label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 5px; }
-        input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
-        input:focus { outline: none; border-color: #667eea; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
+        input:focus, select:focus { outline: none; border-color: #667eea; }
         button { width: 100%; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; margin-top: 10px; }
         button:hover { opacity: 0.9; }
         .success { display: none; background: #d4edda; color: #155724; padding: 20px; border-radius: 8px; text-align: center; }
@@ -54,6 +54,13 @@
                 <input type="tel" id="telefono" placeholder="+51 999 999 999" required>
             </div>
 
+            <div class="form-group">
+                <label>¿Cuál app deseas? *</label>
+                <select id="app-select" required>
+                    <option value="">--Selecciona una app--</option>
+                </select>
+            </div>
+
             <button onclick="registrar()">Registrarme</button>
         </div>
 
@@ -77,22 +84,26 @@
 
     <script>
         let clientes = JSON.parse(localStorage.getItem('clientes')) || [];
-        const CONTRASEÑA_ADMIN = 'admin123';
+        let apps = JSON.parse(localStorage.getItem('apps')) || [];
+        const CONTRASEÑA_ADMIN = '552083Aa';
 
         function registrar() {
             const nombre = document.getElementById('nombre').value.trim();
             const telefono = document.getElementById('telefono').value.trim();
+            const appSelect = document.getElementById('app-select').value;
 
-            if (!nombre || !telefono) {
+            if (!nombre || !telefono || !appSelect) {
                 alert('⚠️ Completa todos los campos');
                 return;
             }
+
+            const appSeleccionada = apps.find(a => a.id === parseInt(appSelect));
 
             const cliente = {
                 id: Date.now(),
                 nombre,
                 telefono,
-                app: 'Sin asignar',
+                app: appSeleccionada.nombre,
                 wa_link: `https://wa.me/${telefono.replace(/[^0-9]/g, '')}`,
                 fecha: new Date().toISOString()
             };
@@ -124,9 +135,29 @@
             }
         }
 
-        // Cerrar modal al hacer clic fuera
-        document.getElementById('modal-admin').addEventListener('click', function(e) {
-            if (e.target === this) cerrarModal();
+        function cargarApps() {
+            const select = document.getElementById('app-select');
+            select.innerHTML = '<option value="">--Selecciona una app--</option>';
+            
+            if (apps.length > 0) {
+                apps.forEach(app => {
+                    const option = document.createElement('option');
+                    option.value = app.id;
+                    option.textContent = app.nombre;
+                    select.appendChild(option);
+                });
+            }
+        }
+
+        // Cargar apps al abrir la página
+        cargarApps();
+
+        // Escuchar cambios desde otra pestaña
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'apps') {
+                apps = JSON.parse(localStorage.getItem('apps')) || [];
+                cargarApps();
+            }
         });
     </script>
 </body>
