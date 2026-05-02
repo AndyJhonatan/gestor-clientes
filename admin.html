@@ -3,770 +3,722 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Admin Pro - Gestor Clientes</title>
+    <title>Panel Admin Pro</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        :root {
-            --bg: #f5f5f5;
-            --bg-card: white;
-            --text: #333;
-            --text-light: #666;
-            --border: #ddd;
-            --primary: #667eea;
-            --primary-dark: #5568d3;
-            --danger: #dc3545;
-        }
-        
-        body.dark-mode {
-            --bg: #1a1a1a;
-            --bg-card: #2d2d2d;
-            --text: #e0e0e0;
-            --text-light: #b0b0b0;
-            --border: #444;
-        }
-        
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); transition: 0.3s; }
-        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
-        
-        header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px; border-radius: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
-        header h1 { font-size: 24px; }
-        .header-buttons { display: flex; gap: 10px; }
-        .btn-dark-mode, .logout-btn { background: rgba(255,255,255,0.2); padding: 8px 16px; border: 1px solid white; color: white; border-radius: 6px; cursor: pointer; font-weight: 600; }
-        .btn-dark-mode:hover, .logout-btn:hover { background: rgba(255,255,255,0.3); }
-        
-        .tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-        .tab-btn { padding: 10px 15px; background: var(--bg-card); border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: 0.3s; color: var(--text); }
-        .tab-btn.active { background: var(--primary); color: white; }
-        
-        .content { display: none; }
-        .content.active { display: block; }
-        
-        .card { background: var(--bg-card); padding: 20px; border-radius: 10px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: 1px solid var(--border); }
-        .card h2 { margin-bottom: 15px; color: var(--text); border-bottom: 2px solid var(--border); padding-bottom: 10px; }
-        
-        .form-group { margin-bottom: 12px; }
-        label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px; color: var(--text); }
-        input, select, textarea { width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; background: var(--bg); color: var(--text); }
-        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); }
-        
-        button { padding: 8px 16px; background: var(--primary); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.3s; }
-        button:hover { background: var(--primary-dark); }
-        button.danger { background: var(--danger); }
-        button.danger:hover { background: #c82333; }
-        button.small { padding: 4px 8px; font-size: 11px; }
-        
-        .row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .row.triple { grid-template-columns: 1fr 1fr 1fr; }
-        .row.quad { grid-template-columns: 1fr 1fr 1fr 1fr; }
-        
-        .table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
-        .table th { background: var(--border); padding: 10px; text-align: left; font-weight: 600; border-bottom: 2px solid var(--border); color: var(--text); }
-        .table td { padding: 10px; border-bottom: 1px solid var(--border); color: var(--text); }
-        .table tr:hover { background: var(--border); }
-        
-        .metric { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px; border-radius: 8px; text-align: center; }
-        .metric-value { font-size: 24px; font-weight: bold; }
-        .metric-label { font-size: 11px; opacity: 0.9; margin-top: 5px; }
-        .metric.success { background: linear-gradient(135deg, #28a745 0%, #20c997 100%); }
-        .metric.danger { background: linear-gradient(135deg, #dc3545 0%, #e74c3c 100%); }
-        
-        .alert { padding: 12px; border-radius: 6px; margin-bottom: 15px; font-size: 12px; background: #d1ecf1; color: #0c5460; }
-        
-        .app-type { display: inline-block; padding: 2px 6px; border-radius: 3px; font-size: 10px; font-weight: 600; }
-        .app-type.personal { background: #e2e3e5; color: #383d41; }
-        .app-type.shared { background: #d1ecf1; color: #0c5460; }
-        
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
-        .modal.active { display: flex; }
-        .modal-content { background: var(--bg-card); padding: 30px; border-radius: 10px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; }
-        .modal-content h2 { margin-bottom: 20px; color: var(--text); }
-        
-        .portapapeles-item { background: var(--border); padding: 10px; margin: 8px 0; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; }
-        .copy-btn { background: #667eea; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; }
-        .copy-btn:hover { background: #5568d3; }
-        
-        .ganancia-item { background: var(--border); padding: 12px; margin: 10px 0; border-radius: 6px; }
-        .resumen-mes { background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%); padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid var(--primary); }
-        
-        @media (max-width: 768px) {
-            .row { grid-template-columns: 1fr; }
-            .row.triple { grid-template-columns: 1fr; }
-            .row.quad { grid-template-columns: 1fr 1fr; }
-        }
+        :root { --bg:#f5f5f5;--card:#fff;--text:#333;--light:#666;--border:#ddd;--primary:#667eea;--dark:#5568d3;--danger:#dc3545;--success:#28a745; }
+        body.dm { --bg:#1a1a1a;--card:#2d2d2d;--text:#e0e0e0;--light:#aaa;--border:#444; }
+        body { font-family: system-ui,sans-serif; background:var(--bg); color:var(--text); }
+        .wrap { max-width:1400px; margin:0 auto; padding:20px; }
+        header { background:linear-gradient(135deg,#667eea,#764ba2); color:#fff; padding:20px 25px; border-radius:10px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; }
+        header h1 { font-size:22px; }
+        .hbtns { display:flex; gap:8px; }
+        .hbtn { background:rgba(255,255,255,0.2); border:1px solid #fff; color:#fff; padding:7px 14px; border-radius:6px; cursor:pointer; font-weight:600; }
+        .hbtn:hover { background:rgba(255,255,255,0.3); }
+        .tabs { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px; }
+        .tbtn { padding:9px 14px; background:var(--card); border:none; border-radius:6px; cursor:pointer; font-weight:500; color:var(--text); transition:.2s; }
+        .tbtn.on { background:var(--primary); color:#fff; }
+        .pane { display:none; } .pane.on { display:block; }
+        .card { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:20px; margin-bottom:14px; box-shadow:0 2px 8px rgba(0,0,0,.07); }
+        .card h2 { font-size:16px; border-bottom:2px solid var(--border); padding-bottom:10px; margin-bottom:14px; }
+        .fg { margin-bottom:11px; }
+        label { display:block; font-size:11px; font-weight:700; margin-bottom:3px; color:var(--text); }
+        input,select,textarea { width:100%; padding:8px; border:1px solid var(--border); border-radius:6px; font-size:13px; background:var(--bg); color:var(--text); }
+        input:focus,select:focus,textarea:focus { outline:none; border-color:var(--primary); }
+        btn,button { display:inline-block; padding:8px 16px; background:var(--primary); color:#fff; border:none; border-radius:6px; cursor:pointer; font-weight:600; transition:.2s; }
+        button:hover { background:var(--dark); }
+        button.red { background:var(--danger); } button.red:hover { background:#c0392b; }
+        button.sm { padding:4px 8px; font-size:11px; }
+        button.full { width:100%; }
+        .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+        .grid3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
+        .grid4 { display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:14px; }
+        table { width:100%; border-collapse:collapse; font-size:12px; margin-top:8px; }
+        th { background:var(--border); padding:9px; text-align:left; font-weight:700; color:var(--text); }
+        td { padding:9px; border-bottom:1px solid var(--border); color:var(--text); }
+        tr:hover td { background:var(--border); }
+        .met { background:linear-gradient(135deg,#667eea,#764ba2); color:#fff; padding:14px; border-radius:8px; text-align:center; }
+        .met.g { background:linear-gradient(135deg,#28a745,#20c997); }
+        .met.r { background:linear-gradient(135deg,#dc3545,#e74c3c); }
+        .mv { font-size:22px; font-weight:bold; }
+        .ml { font-size:11px; opacity:.85; margin-top:4px; }
+        .tip { display:inline-block; padding:2px 6px; border-radius:3px; font-size:10px; font-weight:700; }
+        .tip.p { background:#e9ecef; color:#495057; }
+        .tip.s { background:#d1ecf1; color:#0c5460; }
+        .resumen { border-left:4px solid var(--primary); padding:12px 16px; background:rgba(102,126,234,.08); border-radius:0 6px 6px 0; }
+        /* MODAL */
+        .modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:999; align-items:center; justify-content:center; }
+        .modal.on { display:flex; }
+        .mbox { background:var(--card); border-radius:12px; padding:28px; max-width:680px; width:92%; max-height:85vh; overflow-y:auto; }
+        .mbox h2 { margin-bottom:18px; font-size:18px; }
+        /* GRUPOS COMPARTIDOS */
+        .grupo { border-left:4px solid var(--primary); background:var(--border); border-radius:0 6px 6px 0; padding:14px; margin:10px 0; }
+        .grupo h4 { font-size:13px; margin-bottom:8px; display:flex; align-items:center; gap:8px; }
+        .grupo .badge { background:var(--primary); color:#fff; padding:2px 7px; border-radius:10px; font-size:11px; }
+        .cli-row { background:var(--bg); padding:8px 10px; border-radius:5px; margin:5px 0; font-size:12px; display:flex; justify-content:space-between; align-items:center; }
+        .cli-row .dates { color:var(--light); font-size:11px; margin-top:3px; }
+        /* PORTAPAPELES */
+        .msg-item { background:var(--border); border-radius:6px; padding:10px 12px; margin:8px 0; display:flex; gap:10px; align-items:flex-start; }
+        .msg-txt { flex:1; word-break:break-word; font-size:13px; white-space:pre-wrap; }
+        .msg-meta { font-size:10px; color:var(--light); margin-top:4px; }
+        /* EDICIÓN INLINE */
+        .editable { cursor:pointer; border-bottom:1px dashed var(--light); }
+        .editable:hover { color:var(--primary); }
+        @media(max-width:700px){ .grid2,.grid3,.grid4 { grid-template-columns:1fr; } }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <div>
-                <h1>👨‍💼 Panel Admin Pro v3.0</h1>
-                <p>🟢 Conectado en tiempo real</p>
-            </div>
-            <div class="header-buttons">
-                <button class="btn-dark-mode" onclick="toggleDarkMode()">🌙 Modo Oscuro</button>
-                <button class="logout-btn" onclick="logout()">Cerrar Sesión</button>
-            </div>
-        </header>
-
-        <div class="tabs">
-            <button class="tab-btn active" onclick="tab('inicio')">Inicio</button>
-            <button class="tab-btn" onclick="tab('apps')">Apps</button>
-            <button class="tab-btn" onclick="tab('clientes')">Clientes</button>
-            <button class="tab-btn" onclick="tab('asignar')">Asignar</button>
-            <button class="tab-btn" onclick="tab('ganancias')">Ganancias</button>
-            <button class="tab-btn" onclick="tab('portapapeles')">Portapapeles</button>
+<div class="wrap">
+    <header>
+        <div><h1>👨‍💼 Panel Admin Pro v4.0</h1><small>🟢 Conectado</small></div>
+        <div class="hbtns">
+            <button class="hbtn" onclick="toggleDM()">🌙 Modo Oscuro</button>
+            <button class="hbtn" onclick="salir()">Cerrar Sesión</button>
         </div>
+    </header>
 
-        <!-- INICIO -->
-        <div id="inicio" class="content active">
-            <div class="row quad">
-                <div class="metric">
-                    <div class="metric-value" id="total-clientes">0</div>
-                    <div class="metric-label">Total Clientes</div>
-                </div>
-                <div class="metric">
-                    <div class="metric-value" id="total-apps">0</div>
-                    <div class="metric-label">Apps Activas</div>
-                </div>
-                <div class="metric success">
-                    <div class="metric-value" id="ingreso-mes">S/ 0</div>
-                    <div class="metric-label">Ingresos Este Mes</div>
-                </div>
-                <div class="metric danger">
-                    <div class="metric-value" id="inversion-mes">S/ 0</div>
-                    <div class="metric-label">Inversión Este Mes</div>
-                </div>
-            </div>
+    <div class="tabs">
+        <button class="tbtn on" onclick="tab('inicio',this)">📊 Inicio</button>
+        <button class="tbtn" onclick="tab('apps',this)">📱 Apps</button>
+        <button class="tbtn" onclick="tab('clientes',this)">👥 Clientes</button>
+        <button class="tbtn" onclick="tab('asignar',this)">🔗 Asignar</button>
+        <button class="tbtn" onclick="tab('compartidas',this)">👥 Compartidas</button>
+        <button class="tbtn" onclick="tab('ganancias',this)">💰 Ganancias</button>
+        <button class="tbtn" onclick="tab('portapapeles',this)">📋 Portapapeles</button>
+    </div>
 
-            <div class="card">
-                <h2>📊 Resumen de Ganancias Este Mes</h2>
-                <div class="resumen-mes" id="resumen-mes-container"></div>
-            </div>
-
-            <div class="card">
-                <h2>👥 Clientes Recientes</h2>
-                <table class="table">
-                    <thead>
-                        <tr><th>Nombre</th><th>App</th><th>Correo</th><th>Inicio</th><th>Pago</th></tr>
-                    </thead>
-                    <tbody id="clientes-recientes"></tbody>
-                </table>
-            </div>
+    <!-- INICIO -->
+    <div id="inicio" class="pane on">
+        <div class="grid4" style="margin-bottom:14px;">
+            <div class="met"><div class="mv" id="d-clientes">0</div><div class="ml">Total Clientes</div></div>
+            <div class="met"><div class="mv" id="d-apps">0</div><div class="ml">Apps Activas</div></div>
+            <div class="met g"><div class="mv" id="d-ingreso">S/ 0</div><div class="ml">Ingresos Totales</div></div>
+            <div class="met r"><div class="mv" id="d-inversion">S/ 0</div><div class="ml">Inversión Total</div></div>
         </div>
-
-        <!-- APPS -->
-        <div id="apps" class="content">
-            <div class="alert">📌 Gestiona tus apps con inversión mensual.</div>
-
-            <div class="card">
-                <h2>➕ Crear Nueva App</h2>
-                <div class="row">
-                    <div class="form-group">
-                        <label>Nombre de la app *</label>
-                        <input type="text" id="app-nombre" placeholder="Netflix, Disney...">
-                    </div>
-                    <div class="form-group">
-                        <label>Tipo *</label>
-                        <select id="app-tipo">
-                            <option value="personal">Personal</option>
-                            <option value="shared">Compartida</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="row quad">
-                    <div class="form-group">
-                        <label>Precio/Cliente (S/)</label>
-                        <input type="number" id="app-precio" value="10" min="1">
-                    </div>
-                    <div class="form-group">
-                        <label>Cupos</label>
-                        <input type="number" id="app-cupos" value="18" min="1">
-                    </div>
-                    <div class="form-group">
-                        <label>Inversión Mensual (S/) *</label>
-                        <input type="number" id="app-inversion" value="78" min="0">
-                    </div>
-                    <div class="form-group">
-                        <label>Fecha de Pago *</label>
-                        <input type="date" id="app-fecha-pago">
-                    </div>
-                </div>
-                <button onclick="agregarApp()" style="width: 100%;">✅ Crear App</button>
-            </div>
-
-            <div class="card">
-                <h2>📱 Mis Apps</h2>
-                <table class="table">
-                    <thead>
-                        <tr><th>App</th><th>Tipo</th><th>Precio</th><th>Cupos</th><th>Inversión</th><th>F. Pago</th><th>Clientes</th><th>Acción</th></tr>
-                    </thead>
-                    <tbody id="apps-tabla"></tbody>
-                </table>
-            </div>
+        <div class="card">
+            <h2>📊 Balance del Mes</h2>
+            <div class="resumen" id="resumen"></div>
         </div>
-
-        <!-- CLIENTES -->
-        <div id="clientes" class="content">
-            <div class="alert">👥 Agrega y gestiona clientes.</div>
-
-            <div class="card">
-                <h2>➕ Agregar Cliente</h2>
-                <div class="row">
-                    <div class="form-group">
-                        <label>Nombre *</label>
-                        <input type="text" id="add-nombre" placeholder="Juan Pérez">
-                    </div>
-                    <div class="form-group">
-                        <label>Teléfono *</label>
-                        <input type="tel" id="add-telefono" placeholder="+51 999 999 999">
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="form-group">
-                        <label>App *</label>
-                        <select id="add-app" onchange="actualizarCorreosAdd()">
-                            <option value="">--Selecciona--</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Correo (compartida)</label>
-                        <select id="add-correo">
-                            <option value="">--Selecciona--</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="form-group">
-                        <label>Fecha Inicio *</label>
-                        <input type="date" id="add-fecha-inicio">
-                    </div>
-                    <div class="form-group">
-                        <label>Fecha Pago</label>
-                        <input type="date" id="add-fecha-pago">
-                    </div>
-                </div>
-                <button onclick="agregarClienteManual()" style="width: 100%;">✅ Agregar Cliente</button>
-            </div>
-
-            <div class="card">
-                <h2>👥 Todos los Clientes</h2>
-                <table class="table">
-                    <thead>
-                        <tr><th>Nombre</th><th>Tel</th><th>App</th><th>Correo</th><th>Inicio</th><th>Pago</th><th>WhatsApp</th><th>Acción</th></tr>
-                    </thead>
-                    <tbody id="clientes-tabla"></tbody>
-                </table>
-            </div>
+        <div class="card">
+            <h2>👥 Clientes Recientes</h2>
+            <table><thead><tr><th>Nombre</th><th>App</th><th>Correo</th><th>Registro</th><th>Próx. Pago</th></tr></thead>
+            <tbody id="t-recientes"></tbody></table>
         </div>
+    </div>
 
-        <!-- ASIGNAR -->
-        <div id="asignar" class="content">
-            <div class="alert">🔗 Asigna apps y correos a clientes.</div>
-
-            <div class="card">
-                <h2>🔗 Asignar App a Cliente</h2>
-                <div class="row">
-                    <div class="form-group">
-                        <label>Cliente *</label>
-                        <select id="cliente-select">
-                            <option value="">--Selecciona--</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>App *</label>
-                        <select id="app-select" onchange="actualizarCorreos()">
-                            <option value="">--Selecciona--</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="form-group">
-                        <label>Correo (compartida)</label>
-                        <select id="correo-select">
-                            <option value="">--Selecciona--</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Fecha Pago</label>
-                        <input type="date" id="asign-fecha-pago">
-                    </div>
-                </div>
-                <button onclick="asignarApp()" style="width: 100%;">✅ Asignar</button>
-            </div>
-
-            <div class="card">
-                <h2>📱 Ver Clientes por App</h2>
-                <div class="form-group">
-                    <label>Selecciona una app *</label>
-                    <select id="app-filter" onchange="abrirClientesPorApp()">
-                        <option value="">--Selecciona--</option>
+    <!-- APPS -->
+    <div id="apps" class="pane">
+        <div class="card">
+            <h2>➕ Nueva App</h2>
+            <div class="grid2">
+                <div class="fg"><label>Nombre *</label><input id="a-nombre" placeholder="ChatGPT Plus..."></div>
+                <div class="fg"><label>Tipo *</label>
+                    <select id="a-tipo">
+                        <option value="personal">Personal</option>
+                        <option value="shared">Compartida</option>
                     </select>
                 </div>
             </div>
+            <div class="grid4">
+                <div class="fg"><label>Precio/Cliente (S/)</label><input type="number" id="a-precio" value="10"></div>
+                <div class="fg"><label>Cupos</label><input type="number" id="a-cupos" value="18"></div>
+                <div class="fg"><label>Inversión Mensual (S/)</label><input type="number" id="a-inversion" value="78"></div>
+                <div class="fg"><label>Fecha de Pago Mensual</label><input type="date" id="a-fpago"></div>
+            </div>
+            <button class="full" onclick="crearApp()">✅ Crear App</button>
         </div>
-
-        <!-- GANANCIAS -->
-        <div id="ganancias" class="content">
-            <div class="alert">💰 Análisis detallado de ganancias por app.</div>
-            <div class="card">
-                <h2>📊 Ganancias por App</h2>
-                <div id="ganancias-container"></div>
-            </div>
-        </div>
-
-        <!-- PORTAPAPELES -->
-        <div id="portapapeles" class="content">
-            <div class="alert">📋 Crea y gestiona mensajes para copiar rápidamente.</div>
-
-            <div class="card">
-                <h2>➕ Agregar Mensaje</h2>
-                <div class="form-group">
-                    <label>Mensaje *</label>
-                    <textarea id="nuevo-mensaje" placeholder="Escribe el mensaje..." rows="4" style="resize: vertical;"></textarea>
-                </div>
-                <button onclick="agregarMensaje()" style="width: 100%;">➕ Guardar Mensaje</button>
-            </div>
-
-            <div class="card">
-                <h2>📋 Mis Mensajes</h2>
-                <div id="portapapeles-lista"></div>
-            </div>
+        <div class="card">
+            <h2>📱 Mis Apps</h2>
+            <table>
+                <thead><tr><th>App</th><th>Tipo</th><th>Precio</th><th>Cupos</th><th>Inversión</th><th>F.Pago</th><th>Clientes</th><th>Acción</th></tr></thead>
+                <tbody id="t-apps"></tbody>
+            </table>
         </div>
     </div>
 
-    <!-- MODAL CLIENTES POR APP -->
-    <div id="modal-clientes-app" class="modal">
-        <div class="modal-content">
-            <h2>👥 Clientes de: <span id="modal-app-name"></span></h2>
-            <div id="clientes-app-list"></div>
-            <button onclick="cerrarModalClientesApp()" style="width: 100%; margin-top: 20px; background: #6c757d;">Cerrar</button>
+    <!-- CLIENTES -->
+    <div id="clientes" class="pane">
+        <div class="card">
+            <h2>➕ Agregar Cliente</h2>
+            <div class="grid2">
+                <div class="fg"><label>Nombre *</label><input id="c-nombre" placeholder="Juan Pérez"></div>
+                <div class="fg"><label>Teléfono *</label><input id="c-tel" placeholder="999999999"></div>
+            </div>
+            <div class="grid2">
+                <div class="fg"><label>App *</label><select id="c-app" onchange="onChangeAppCliente()"><option value="">--Selecciona--</option></select></div>
+                <div class="fg"><label>Correo (solo si compartida)</label><select id="c-correo"><option value="">--Sin correo--</option></select></div>
+            </div>
+            <div class="grid2">
+                <div class="fg"><label>Fecha Inicio *</label><input type="date" id="c-finicio"></div>
+                <div class="fg"><label>Fecha Próximo Pago</label><input type="date" id="c-fpago"></div>
+            </div>
+            <button class="full" onclick="agregarCliente()">✅ Agregar Cliente</button>
+        </div>
+        <div class="card">
+            <h2>👥 Todos los Clientes</h2>
+            <table>
+                <thead><tr><th>Nombre</th><th>Tel</th><th>App</th><th>Correo</th><th>Inicio</th><th>Próx.Pago</th><th>WA</th><th>Acción</th></tr></thead>
+                <tbody id="t-clientes"></tbody>
+            </table>
         </div>
     </div>
 
-    <script>
-        const SUPABASE_URL = 'https://opmbftaczdrvizroaeew.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_Zv8dGqKjGDX7wedV7KLicA_hmtFRxPj';
-        
-        const { createClient } = window.supabase;
-        const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+    <!-- ASIGNAR -->
+    <div id="asignar" class="pane">
+        <div class="card">
+            <h2>🔗 Asignar / Actualizar Cliente</h2>
+            <div class="grid2">
+                <div class="fg"><label>Cliente *</label><select id="as-cli"><option value="">--Selecciona--</option></select></div>
+                <div class="fg"><label>App *</label><select id="as-app" onchange="onChangeAppAsignar()"><option value="">--Selecciona--</option></select></div>
+            </div>
+            <div class="grid2">
+                <div class="fg"><label>Correo (si es compartida)</label><select id="as-correo"><option value="">--Sin correo--</option></select></div>
+                <div class="fg"><label>Fecha Próximo Pago</label><input type="date" id="as-fpago"></div>
+            </div>
+            <button class="full" onclick="asignar()">✅ Guardar</button>
+        </div>
+    </div>
 
-        let apps = [];
-        let clientes = [];
-        let appCorreos = {};
-        let mensajes = [];
-
-        function toggleDarkMode() {
-            document.body.classList.toggle('dark-mode');
-            localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
-        }
-
-        if (localStorage.getItem('darkMode') === 'true') {
-            document.body.classList.add('dark-mode');
-        }
-
-        async function cargarDatos() {
-            try {
-                const { data: appsData } = await db.from('apps').select('*');
-                apps = appsData || [];
-
-                const { data: clientesData } = await db.from('clientes').select('*');
-                clientes = clientesData || [];
-
-                appCorreos = JSON.parse(localStorage.getItem('appCorreos')) || {};
-                mensajes = JSON.parse(localStorage.getItem('mensajes')) || [];
-
-                actualizar();
-            } catch (err) {
-                console.error('Error:', err);
-            }
-        }
-
-        function tab(name) {
-            document.querySelectorAll('.content').forEach(e => e.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(e => e.classList.remove('active'));
-            document.getElementById(name).classList.add('active');
-            event.target.classList.add('active');
-        }
-
-        async function agregarApp() {
-            const nombre = document.getElementById('app-nombre').value.trim();
-            const tipo = document.getElementById('app-tipo').value;
-            const inversion = parseFloat(document.getElementById('app-inversion').value) || 0;
-            const fechaPago = document.getElementById('app-fecha-pago').value;
-
-            if (!nombre || !fechaPago) {
-                alert('⚠️ Completa todos los campos');
-                return;
-            }
-
-            try {
-                await db.from('apps').insert([{
-                    nombre, tipo, precio: parseInt(document.getElementById('app-precio').value) || 10,
-                    cupos: parseInt(document.getElementById('app-cupos').value) || 18,
-                    inversion, fecha_pago: fechaPago
-                }]);
-
-                document.getElementById('app-nombre').value = '';
-                document.getElementById('app-tipo').value = 'personal';
-                document.getElementById('app-precio').value = '10';
-                document.getElementById('app-cupos').value = '18';
-                document.getElementById('app-inversion').value = '78';
-                document.getElementById('app-fecha-pago').value = '';
-
-                alert('✅ App creada');
-                cargarDatos();
-            } catch (err) {
-                alert('❌ Error: ' + err.message);
-            }
-        }
-
-        async function agregarClienteManual() {
-            const nombre = document.getElementById('add-nombre').value.trim();
-            const telefono = document.getElementById('add-telefono').value.trim();
-            const appId = parseInt(document.getElementById('add-app').value);
-            const correo = document.getElementById('add-correo').value || null;
-            const fechaInicio = document.getElementById('add-fecha-inicio').value;
-            const fechaPago = document.getElementById('add-fecha-pago').value || null;
-
-            if (!nombre || !telefono || !appId || !fechaInicio) {
-                alert('⚠️ Completa los campos requeridos');
-                return;
-            }
-
-            try {
-                const app = apps.find(a => a.id === appId);
-                if (!app) { alert('⚠️ App no encontrada'); return; }
-                
-                await db.from('clientes').insert([{
-                    nombre, telefono, app: app.nombre, app_id: appId, correo,
-                    wa_link: `https://wa.me/${telefono.replace(/[^0-9]/g, '')}`,
-                    fecha_inicio: fechaInicio, fecha_pago: fechaPago,
-                    fecha_registro: new Date().toISOString()
-                }]);
-
-                document.getElementById('add-nombre').value = '';
-                document.getElementById('add-telefono').value = '';
-                document.getElementById('add-app').value = '';
-                document.getElementById('add-correo').value = '';
-                document.getElementById('add-fecha-inicio').value = new Date().toISOString().split('T')[0];
-                document.getElementById('add-fecha-pago').value = '';
-
-                alert('✅ Cliente agregado');
-                cargarDatos();
-            } catch (err) {
-                alert('❌ Error: ' + err.message);
-            }
-        }
-
-        function actualizarCorreosAdd() {
-            const appId = parseInt(document.getElementById('add-app').value);
-            const correosSelect = document.getElementById('add-correo');
-            correosSelect.innerHTML = '<option value="">--Selecciona--</option>';
-
-            if (appId && appCorreos[appId]) {
-                appCorreos[appId].forEach(correo => {
-                    const option = document.createElement('option');
-                    option.value = correo;
-                    option.textContent = correo;
-                    correosSelect.appendChild(option);
-                });
-            }
-        }
-
-        function actualizarCorreos() {
-            const appId = parseInt(document.getElementById('app-select').value);
-            const correosSelect = document.getElementById('correo-select');
-            correosSelect.innerHTML = '<option value="">--Selecciona--</option>';
-
-            if (appId && appCorreos[appId]) {
-                appCorreos[appId].forEach(correo => {
-                    const option = document.createElement('option');
-                    option.value = correo;
-                    option.textContent = correo;
-                    correosSelect.appendChild(option);
-                });
-            }
-        }
-
-        async function asignarApp() {
-            const clienteId = parseInt(document.getElementById('cliente-select').value);
-            const appId = parseInt(document.getElementById('app-select').value);
-            const correo = document.getElementById('correo-select').value || null;
-            const fechaPago = document.getElementById('asign-fecha-pago').value || null;
-
-            if (!clienteId || !appId) {
-                alert('⚠️ Selecciona cliente y app');
-                return;
-            }
-
-            try {
-                const cliente = clientes.find(c => c.id === clienteId);
-                const app = apps.find(a => a.id === appId);
-
-                if (!cliente || !app) { alert('⚠️ No encontrado'); return; }
-
-                await db.from('clientes').update({
-                    app: app.nombre, app_id: appId, correo, fecha_pago: fechaPago
-                }).eq('id', clienteId);
-
-                alert('✅ App asignada');
-                document.getElementById('cliente-select').value = '';
-                document.getElementById('app-select').value = '';
-                document.getElementById('correo-select').value = '';
-                document.getElementById('asign-fecha-pago').value = '';
-                cargarDatos();
-            } catch (err) {
-                alert('❌ Error: ' + err.message);
-            }
-        }
-
-        function abrirClientesPorApp() {
-            const appId = parseInt(document.getElementById('app-filter').value);
-            
-            if (!appId) {
-                alert('⚠️ Selecciona una app');
-                return;
-            }
-
-            const app = apps.find(a => a.id === appId);
-            if (!app) { alert('⚠️ App no encontrada'); return; }
-
-            const clientesApp = clientes.filter(c => c.app_id === appId);
-            const correos = appCorreos[appId] || [];
-
-            document.getElementById('modal-app-name').textContent = app.nombre;
-            
-            let html = '';
-            if (clientesApp.length === 0) {
-                html = '<p style="text-align: center; color: var(--text-light);">Sin clientes</p>';
-            } else if (correos.length === 0) {
-                clientesApp.forEach(c => {
-                    html += `<div class="ganancia-item">
-                        <strong>${c.nombre}</strong> - ${c.telefono}
-                        <div style="font-size: 12px; color: var(--text-light); margin-top: 5px;">
-                            Inicio: ${c.fecha_inicio ? new Date(c.fecha_inicio).toLocaleDateString() : '-'} | 
-                            Pago: ${c.fecha_pago ? new Date(c.fecha_pago).toLocaleDateString() : '-'}
-                        </div>
-                    </div>`;
-                });
-            } else {
-                correos.forEach(correo => {
-                    const clientesDelCorreo = clientesApp.filter(c => c.correo === correo);
-                    html += `<div class="ganancia-item" style="border-left: 4px solid #667eea;">
-                        <h4>📧 ${correo} (${clientesDelCorreo.length})</h4>`;
-                    
-                    if (clientesDelCorreo.length === 0) {
-                        html += '<p style="color: var(--text-light); font-size: 12px;">Sin clientes</p>';
-                    } else {
-                        clientesDelCorreo.forEach(c => {
-                            html += `<div style="background: var(--bg); padding: 8px; margin: 5px 0; border-radius: 4px; font-size: 12px;">
-                                <strong>${c.nombre}</strong> - ${c.telefono}
-                                <br><small>Inicio: ${c.fecha_inicio ? new Date(c.fecha_inicio).toLocaleDateString() : '-'} | Pago: ${c.fecha_pago ? new Date(c.fecha_pago).toLocaleDateString() : '-'}</small>
-                            </div>`;
-                        });
-                    }
-                    html += '</div>';
-                });
-            }
-
-            document.getElementById('clientes-app-list').innerHTML = html;
-            document.getElementById('modal-clientes-app').classList.add('active');
-        }
-
-        function cerrarModalClientesApp() {
-            document.getElementById('modal-clientes-app').classList.remove('active');
-        }
-
-        function agregarMensaje() {
-            const texto = document.getElementById('nuevo-mensaje').value.trim();
-            if (!texto) { alert('⚠️ Escribe un mensaje'); return; }
-
-            mensajes.push({ id: Date.now(), texto, fecha: new Date().toLocaleDateString() });
-            localStorage.setItem('mensajes', JSON.stringify(mensajes));
-            document.getElementById('nuevo-mensaje').value = '';
-            renderMensajes();
-            alert('✅ Mensaje guardado');
-        }
-
-        function renderMensajes() {
-            const container = document.getElementById('portapapeles-lista');
-
-            if (mensajes.length === 0) {
-                container.innerHTML = '<p style="text-align: center;">Sin mensajes</p>';
-            } else {
-                container.innerHTML = mensajes.map(msg => `<div class="portapapeles-item">
-                    <div style="flex: 1;">
-                        <div style="word-break: break-word;">${msg.texto}</div>
-                        <small style="color: var(--text-light);">${msg.fecha}</small>
+    <!-- COMPARTIDAS -->
+    <div id="compartidas" class="pane">
+        <div class="card">
+            <h2>🗂️ Gestionar Correos por App</h2>
+            <div class="grid2">
+                <div class="fg"><label>App Compartida</label><select id="sh-app" onchange="renderCorreosApp()"><option value="">--Selecciona--</option></select></div>
+                <div class="fg"><label>Nuevo Correo</label>
+                    <div style="display:flex;gap:8px;">
+                        <input id="sh-correo" placeholder="usuario@gmail.com" style="flex:1;">
+                        <button onclick="addCorreo()">➕</button>
                     </div>
-                    <button class="copy-btn" onclick="copiarMensaje('${msg.texto.replace(/'/g, "\\'")}')">📋</button>
-                    <button class="small danger" onclick="eliminarMensaje(${msg.id})">🗑️</button>
-                </div>`).join('');
-            }
-        }
+                </div>
+            </div>
+            <div id="sh-correos-lista"></div>
+        </div>
+        <div class="card">
+            <h2>👁️ Vista por Grupos (Correo)</h2>
+            <div class="fg"><label>Selecciona App Compartida</label>
+                <select id="sh-vista-app" onchange="renderVistaCompartida()"><option value="">--Selecciona--</option></select>
+            </div>
+            <div id="sh-vista"></div>
+        </div>
+    </div>
 
-        function copiarMensaje(texto) {
-            navigator.clipboard.writeText(texto).then(() => alert('✅ Copiado'));
-        }
+    <!-- GANANCIAS -->
+    <div id="ganancias" class="pane">
+        <div class="card">
+            <h2>💰 Ganancias por App</h2>
+            <div id="g-lista"></div>
+        </div>
+    </div>
 
-        function eliminarMensaje(id) {
-            mensajes = mensajes.filter(m => m.id !== id);
-            localStorage.setItem('mensajes', JSON.stringify(mensajes));
-            renderMensajes();
-        }
+    <!-- PORTAPAPELES -->
+    <div id="portapapeles" class="pane">
+        <div class="card">
+            <h2>➕ Nuevo Mensaje</h2>
+            <div class="fg"><textarea id="msg-new" rows="4" placeholder="Escribe tu mensaje aquí..."></textarea></div>
+            <button class="full" onclick="addMsg()">💾 Guardar</button>
+        </div>
+        <div class="card">
+            <h2>📋 Mensajes Guardados</h2>
+            <div id="msg-lista"></div>
+        </div>
+    </div>
+</div>
 
-        function renderApps() {
-            const tbody = document.getElementById('apps-tabla');
-            const select = document.getElementById('add-app');
-            const filterSelect = document.getElementById('app-filter');
-            const appSelect = document.getElementById('app-select');
+<!-- MODAL EDITAR CLIENTE -->
+<div id="modal-edit" class="modal">
+    <div class="mbox">
+        <h2>✏️ Editar Cliente</h2>
+        <input type="hidden" id="edit-id">
+        <div class="grid2">
+            <div class="fg"><label>Nombre</label><input id="edit-nombre"></div>
+            <div class="fg"><label>Teléfono</label><input id="edit-tel"></div>
+        </div>
+        <div class="grid2">
+            <div class="fg"><label>App</label><select id="edit-app" onchange="onChangeAppEdit()"><option value="">--Sin app--</option></select></div>
+            <div class="fg"><label>Correo</label><select id="edit-correo"><option value="">--Sin correo--</option></select></div>
+        </div>
+        <div class="grid2">
+            <div class="fg"><label>Fecha Inicio</label><input type="date" id="edit-finicio"></div>
+            <div class="fg"><label>Fecha Pago</label><input type="date" id="edit-fpago"></div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:16px;">
+            <button class="full" onclick="guardarEdicion()">✅ Guardar Cambios</button>
+            <button class="full" style="background:#6c757d;" onclick="cerrarModal('modal-edit')">Cancelar</button>
+        </div>
+    </div>
+</div>
 
-            if (apps.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">Sin apps</td></tr>';
-            } else {
-                tbody.innerHTML = apps.map(a => {
-                    const clientesApp = clientes.filter(c => c.app_id === a.id).length;
-                    return `<tr>
-                        <td><strong>${a.nombre}</strong></td>
-                        <td><span class="app-type ${a.tipo}">${a.tipo.toUpperCase()}</span></td>
-                        <td>S/ ${a.precio}</td>
-                        <td>${a.cupos || '-'}</td>
-                        <td>S/ ${a.inversion || 0}</td>
-                        <td>${a.fecha_pago ? new Date(a.fecha_pago).toLocaleDateString() : '-'}</td>
-                        <td><button class="small" onclick="document.getElementById('app-filter').value='${a.id}'; abrirClientesPorApp()">${clientesApp}</button></td>
-                        <td><button class="small danger" onclick="eliminarApp(${a.id})">🗑️</button></td>
-                    </tr>`;
-                }).join('');
-            }
+<script>
+const URL = 'https://opmbftaczdrvizroaeew.supabase.co';
+const KEY = 'sb_publishable_Zv8dGqKjGDX7wedV7KLicA_hmtFRxPj';
+const { createClient } = window.supabase;
+const db = createClient(URL, KEY);
 
-            select.innerHTML = '<option value="">--Selecciona--</option>' + apps.map(a => `<option value="${a.id}">${a.nombre}</option>`).join('');
-            filterSelect.innerHTML = '<option value="">--Selecciona--</option>' + apps.map(a => `<option value="${a.id}">${a.nombre}</option>`).join('');
-            appSelect.innerHTML = '<option value="">--Selecciona--</option>' + apps.map(a => `<option value="${a.id}">${a.nombre}</option>`).join('');
-        }
+let apps = [], clientes = [], correos = {}, msgs = [];
 
-        function renderClientes() {
-            const tbody = document.getElementById('clientes-tabla');
-            const recientes = document.getElementById('clientes-recientes');
-            const selectCliente = document.getElementById('cliente-select');
+// Dark mode
+if(localStorage.darkMode==='1') document.body.classList.add('dm');
+function toggleDM(){ document.body.classList.toggle('dm'); localStorage.darkMode=document.body.classList.contains('dm')?'1':'0'; }
 
-            if (clientes.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">Sin clientes</td></tr>';
-                recientes.innerHTML = '<tr><td colspan="5" style="text-align:center;">Sin clientes</td></tr>';
-            } else {
-                tbody.innerHTML = clientes.map(c => `<tr>
-                    <td>${c.nombre}</td><td>${c.telefono}</td><td>${c.app || '-'}</td><td>${c.correo || '-'}</td>
-                    <td>${c.fecha_inicio ? new Date(c.fecha_inicio).toLocaleDateString() : '-'}</td>
-                    <td>${c.fecha_pago ? new Date(c.fecha_pago).toLocaleDateString() : '-'}</td>
-                    <td><a href="${c.wa_link}" target="_blank" style="color: #25d366;">💬</a></td>
-                    <td><button class="small danger" onclick="eliminarCliente(${c.id})">🗑️</button></td>
-                </tr>`).join('');
+// Tabs
+function tab(name,btn){
+    document.querySelectorAll('.pane').forEach(p=>p.classList.remove('on'));
+    document.querySelectorAll('.tbtn').forEach(b=>b.classList.remove('on'));
+    document.getElementById(name).classList.add('on');
+    btn.classList.add('on');
+}
 
-                recientes.innerHTML = clientes.slice(-5).reverse().map(c => `<tr>
-                    <td>${c.nombre}</td><td>${c.app || '-'}</td><td>${c.correo || '-'}</td>
-                    <td>${c.fecha_inicio ? new Date(c.fecha_inicio).toLocaleDateString() : '-'}</td>
-                    <td>${c.fecha_pago ? new Date(c.fecha_pago).toLocaleDateString() : '-'}</td>
-                </tr>`).join('');
-            }
+function salir(){ if(confirm('¿Cerrar sesión?')) location.href='index.html'; }
+function cerrarModal(id){ document.getElementById(id).classList.remove('on'); }
 
-            selectCliente.innerHTML = '<option value="">--Selecciona--</option>' + clientes.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
-        }
+// LOAD
+async function load(){
+    try {
+        const [ra, rc] = await Promise.all([
+            db.from('apps').select('*').order('id'),
+            db.from('clientes').select('*').order('fecha_registro', {ascending:false})
+        ]);
+        apps = ra.data || [];
+        clientes = rc.data || [];
+        correos = JSON.parse(localStorage.getItem('correos')||'{}');
+        msgs = JSON.parse(localStorage.getItem('msgs')||'[]');
+        render();
+    } catch(e){ console.error(e); alert('Error al conectar'); }
+}
 
-        function renderGanancias() {
-            const container = document.getElementById('ganancias-container');
-            let html = '';
+function render(){
+    renderApps();
+    renderClientes();
+    renderSelects();
+    renderCompartidas();
+    renderGanancias();
+    renderMsgs();
+    renderDashboard();
+}
 
-            apps.forEach(app => {
-                const clientesApp = clientes.filter(c => c.app_id === app.id);
-                const ganancia = clientesApp.length * app.precio - (app.inversion || 0);
+// ---------- HELPERS ----------
+function fid(id){ return document.getElementById(id); }
+function fmt(d){ return d ? new Date(d).toLocaleDateString('es-PE') : '-'; }
+function hoy(){ return new Date().toISOString().split('T')[0]; }
 
-                html += `<div class="ganancia-item">
-                    <h4>${app.nombre} <span class="app-type ${app.tipo}">${app.tipo}</span></h4>
-                    <div style="font-size: 12px; color: var(--text-light);">
-                        <strong>Clientes:</strong> ${clientesApp.length} | 
-                        <strong>Ingresos:</strong> S/ ${clientesApp.length * app.precio} | 
-                        <strong>Inversión:</strong> S/ ${app.inversion || 0} | 
-                        <strong>Ganancia:</strong> <span style="color: ${ganancia >= 0 ? '#28a745' : '#dc3545'};">S/ ${ganancia}</span>
+function correosDeApp(appId){
+    return correos[String(appId)] || [];
+}
+
+function fillCorreoSelect(selectId, appId, valorActual=''){
+    const sel = fid(selectId);
+    sel.innerHTML = '<option value="">--Sin correo--</option>';
+    correosDeApp(appId).forEach(c=>{
+        const o=document.createElement('option');
+        o.value=c; o.textContent=c;
+        if(c===valorActual) o.selected=true;
+        sel.appendChild(o);
+    });
+}
+
+function fillAppSelect(selectId, valorActual=''){
+    const sel = fid(selectId);
+    sel.innerHTML = '<option value="">--Sin app--</option>';
+    apps.forEach(a=>{
+        const o=document.createElement('option');
+        o.value=a.id; o.textContent=a.nombre;
+        if(a.id==valorActual) o.selected=true;
+        sel.appendChild(o);
+    });
+}
+
+// ---------- RENDERS ----------
+function renderSelects(){
+    // Para agregar cliente
+    fillAppSelect('c-app');
+    fillAppSelect('as-app');
+    fillAppSelect('as-cli');
+    // cliente-select en asignar
+    const sel = fid('as-cli');
+    sel.innerHTML = '<option value="">--Selecciona--</option>';
+    clientes.forEach(c=>{
+        const o=document.createElement('option');
+        o.value=c.id; o.textContent=c.nombre+(c.app?' ('+c.app+')':'');
+        sel.appendChild(o);
+    });
+    // selects para compartidas
+    const shApp = fid('sh-app');
+    const shVista = fid('sh-vista-app');
+    shApp.innerHTML = '<option value="">--Selecciona--</option>';
+    shVista.innerHTML = '<option value="">--Selecciona--</option>';
+    apps.filter(a=>a.tipo==='shared').forEach(a=>{
+        [shApp,shVista].forEach(s=>{
+            const o=document.createElement('option');
+            o.value=a.id; o.textContent=a.nombre; s.appendChild(o);
+        });
+    });
+}
+
+function renderApps(){
+    const tb = fid('t-apps');
+    if(!apps.length){ tb.innerHTML='<tr><td colspan="8" style="text-align:center;">Sin apps</td></tr>'; return; }
+    tb.innerHTML = apps.map(a=>{
+        const n = clientes.filter(c=>Number(c.app_id)===Number(a.id)).length;
+        return `<tr>
+            <td><strong>${a.nombre}</strong></td>
+            <td><span class="tip ${a.tipo==='shared'?'s':'p'}">${a.tipo.toUpperCase()}</span></td>
+            <td>S/ ${a.precio}</td><td>${a.cupos||'-'}</td><td>S/ ${a.inversion||0}</td>
+            <td>${fmt(a.fecha_pago)}</td>
+            <td>${n}</td>
+            <td><button class="sm red" onclick="delApp(${a.id})">🗑️</button></td>
+        </tr>`;
+    }).join('');
+}
+
+function renderClientes(){
+    const tb = fid('t-clientes');
+    if(!clientes.length){ tb.innerHTML='<tr><td colspan="8" style="text-align:center;">Sin clientes</td></tr>'; return; }
+    tb.innerHTML = clientes.map(c=>`<tr>
+        <td>${c.nombre}</td>
+        <td>${c.telefono}</td>
+        <td>${c.app||'Sin asignar'}</td>
+        <td>${c.correo||'-'}</td>
+        <td>${fmt(c.fecha_inicio||c.fecha_registro)}</td>
+        <td>${fmt(c.fecha_pago)}</td>
+        <td><a href="${c.wa_link||'#'}" target="_blank" style="color:#25d366;">💬</a></td>
+        <td>
+            <button class="sm" onclick="abrirEditar(${c.id})">✏️</button>
+            <button class="sm red" onclick="delCliente(${c.id})">🗑️</button>
+        </td>
+    </tr>`).join('');
+
+    // recientes en inicio (5 más recientes)
+    fid('t-recientes').innerHTML = clientes.slice(0,5).map(c=>`<tr>
+        <td>${c.nombre}</td>
+        <td>${c.app||'-'}</td>
+        <td>${c.correo||'-'}</td>
+        <td>${fmt(c.fecha_registro)}</td>
+        <td>${fmt(c.fecha_pago)}</td>
+    </tr>`).join('');
+}
+
+function renderCompartidas(){
+    // render selects ya hecho en renderSelects
+    const appId = fid('sh-app').value;
+    if(appId) renderCorreosApp();
+    const vistaId = fid('sh-vista-app').value;
+    if(vistaId) renderVistaCompartida();
+}
+
+function renderCorreosApp(){
+    const appId = fid('sh-app').value;
+    const lista = fid('sh-correos-lista');
+    if(!appId){ lista.innerHTML=''; return; }
+    const cs = correosDeApp(appId);
+    if(!cs.length){ lista.innerHTML='<p style="margin-top:10px;color:var(--light);">Sin correos registrados</p>'; return; }
+    lista.innerHTML = `<div style="margin-top:12px;">${cs.map((c,i)=>`
+        <div style="background:var(--border);padding:9px 12px;border-radius:6px;margin:6px 0;display:flex;justify-content:space-between;align-items:center;">
+            <span>📧 ${c}</span>
+            <button class="sm red" onclick="delCorreo('${appId}',${i})">🗑️</button>
+        </div>`).join('')}</div>`;
+}
+
+function renderVistaCompartida(){
+    const appId = fid('sh-vista-app').value;
+    const vista = fid('sh-vista');
+    if(!appId){ vista.innerHTML=''; return; }
+    const app = apps.find(a=>Number(a.id)===Number(appId));
+    if(!app){ return; }
+    const cs = correosDeApp(appId);
+    const clientesApp = clientes.filter(c=>Number(c.app_id)===Number(appId));
+
+    if(!cs.length){
+        vista.innerHTML=`<p style="margin-top:12px;color:var(--light);">No hay correos en esta app. Agrégalos en "Gestionar Correos".</p>`;
+        return;
+    }
+
+    let html = `<div style="margin-top:12px;">
+        <p style="font-size:12px;color:var(--light);margin-bottom:10px;">
+            App: <strong>${app.nombre}</strong> | Total clientes: ${clientesApp.length} | Grupos: ${cs.length}
+        </p>`;
+
+    cs.forEach(correo=>{
+        const grupo = clientesApp.filter(c=>c.correo===correo);
+        html += `<div class="grupo">
+            <h4>📧 ${correo} <span class="badge">${grupo.length} cliente${grupo.length!==1?'s':''}</span></h4>`;
+        if(!grupo.length){
+            html+=`<p style="font-size:12px;color:var(--light);">Sin clientes asignados a este correo</p>`;
+        } else {
+            grupo.forEach(c=>{
+                html+=`<div class="cli-row">
+                    <div>
+                        <strong>${c.nombre}</strong> — ${c.telefono}
+                        <div class="dates">Inicio: ${fmt(c.fecha_inicio||c.fecha_registro)} | Próx. pago: ${fmt(c.fecha_pago)}</div>
+                    </div>
+                    <div style="display:flex;gap:6px;">
+                        <a href="${c.wa_link||'#'}" target="_blank" style="color:#25d366;font-size:18px;">💬</a>
+                        <button class="sm" onclick="abrirEditar(${c.id})">✏️</button>
                     </div>
                 </div>`;
             });
-
-            container.innerHTML = html || '<p>Sin apps</p>';
         }
+        html += `</div>`;
+    });
 
-        function actualizarDashboard() {
-            const hoy = new Date();
-            const mes = hoy.getMonth() + 1;
-            const año = hoy.getFullYear();
-
-            let inversion = 0, ingreso = 0;
-
-            apps.forEach(app => {
-                const f = new Date(app.fecha_pago);
-                if (f.getMonth() + 1 === mes && f.getFullYear() === año) inversion += app.inversion || 0;
-            });
-
-            clientes.forEach(c => {
-                if (c.fecha_pago) {
-                    const f = new Date(c.fecha_pago);
-                    if (f.getMonth() + 1 === mes && f.getFullYear() === año) {
-                        const app = apps.find(a => a.id === c.app_id);
-                        if (app) ingreso += app.precio;
-                    }
-                }
-            });
-
-            const ganancia = ingreso - inversion;
-            document.getElementById('total-clientes').textContent = clientes.length;
-            document.getElementById('total-apps').textContent = apps.length;
-            document.getElementById('ingreso-mes').textContent = 'S/ ' + ingreso;
-            document.getElementById('inversion-mes').textContent = 'S/ ' + inversion;
-            document.getElementById('resumen-mes-container').innerHTML = `
-                <strong>💰 Este Mes:</strong><br>
-                Ingresos: <span style="color: #28a745;">S/ ${ingreso}</span> | 
-                Inversión: <span style="color: #dc3545;">S/ ${inversion}</span> | 
-                Ganancia: <span style="color: ${ganancia >= 0 ? '#28a745' : '#dc3545'}; font-weight: bold;">S/ ${ganancia}</span>
-            `;
-        }
-
-        function actualizar() {
-            renderApps(); renderClientes(); renderMensajes(); renderGanancias(); actualizarDashboard();
-        }
-
-        async function eliminarApp(id) {
-            if (confirm('¿Eliminar?')) {
-                try {
-                    await db.from('apps').delete().eq('id', id);
-                    cargarDatos();
-                } catch (err) {
-                    alert('❌ Error');
-                }
-            }
-        }
-
-        async function eliminarCliente(id) {
-            if (confirm('¿Eliminar?')) {
-                try {
-                    await db.from('clientes').delete().eq('id', id);
-                    cargarDatos();
-                } catch (err) {
-                    alert('❌ Error');
-                }
-            }
-        }
-
-        function logout() {
-            if (confirm('¿Cerrar sesión?')) {
-                window.location.href = 'index.html';
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('add-fecha-inicio').valueAsDate = new Date();
-            document.getElementById('app-fecha-pago').valueAsDate = new Date();
-            cargarDatos();
+    // Clientes sin correo asignado en esta app
+    const sinCorreo = clientesApp.filter(c=>!c.correo||!cs.includes(c.correo));
+    if(sinCorreo.length){
+        html+=`<div class="grupo" style="border-left-color:#ffc107;">
+            <h4>⚠️ Sin correo asignado <span class="badge" style="background:#ffc107;color:#333;">${sinCorreo.length}</span></h4>`;
+        sinCorreo.forEach(c=>{
+            html+=`<div class="cli-row">
+                <div><strong>${c.nombre}</strong> — ${c.telefono}
+                <div class="dates">Inicio: ${fmt(c.fecha_inicio||c.fecha_registro)}</div></div>
+                <button class="sm" onclick="abrirEditar(${c.id})">✏️ Asignar</button>
+            </div>`;
         });
-    </script>
+        html+=`</div>`;
+    }
+
+    html+=`</div>`;
+    vista.innerHTML = html;
+}
+
+function renderGanancias(){
+    const lista = fid('g-lista');
+    if(!apps.length){ lista.innerHTML='<p>Sin apps</p>'; return; }
+    lista.innerHTML = apps.map(a=>{
+        const clientesApp = clientes.filter(c=>Number(c.app_id)===Number(a.id));
+        const ingreso = clientesApp.length * a.precio;
+        const inversion = a.inversion||0;
+        const ganancia = ingreso - inversion;
+        const color = ganancia>=0?'#28a745':'#dc3545';
+
+        let desglose = '';
+        if(a.tipo==='shared'){
+            const cs = correosDeApp(a.id);
+            if(cs.length){
+                desglose = `<div style="margin-top:10px;font-size:11px;">
+                    ${cs.map(correo=>{
+                        const n = clientesApp.filter(c=>c.correo===correo).length;
+                        return `<span style="background:var(--border);padding:3px 8px;border-radius:4px;margin:2px;display:inline-block;">📧 ${correo}: ${n} cliente${n!==1?'s':''}</span>`;
+                    }).join('')}
+                </div>`;
+            }
+        }
+
+        return `<div style="border:1px solid var(--border);border-radius:8px;padding:14px;margin:10px 0;">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+                <div>
+                    <strong>${a.nombre}</strong> <span class="tip ${a.tipo==='shared'?'s':'p'}">${a.tipo.toUpperCase()}</span>
+                    <div style="font-size:12px;color:var(--light);margin-top:4px;">
+                        F.Pago: ${fmt(a.fecha_pago)} | Precio/cliente: S/ ${a.precio}
+                    </div>
+                </div>
+                <div style="text-align:right;font-size:13px;">
+                    <div>Clientes: <strong>${clientesApp.length}</strong></div>
+                    <div>Ingresos: <strong style="color:#28a745;">S/ ${ingreso}</strong></div>
+                    <div>Inversión: <strong style="color:#dc3545;">S/ ${inversion}</strong></div>
+                    <div>Ganancia: <strong style="color:${color};font-size:16px;">S/ ${ganancia}</strong></div>
+                </div>
+            </div>
+            ${desglose}
+        </div>`;
+    }).join('');
+}
+
+function renderMsgs(){
+    const lista = fid('msg-lista');
+    if(!msgs.length){ lista.innerHTML='<p style="text-align:center;color:var(--light);">Sin mensajes</p>'; return; }
+    lista.innerHTML = msgs.map(m=>`
+        <div class="msg-item">
+            <div style="flex:1;">
+                <div class="msg-txt">${m.texto}</div>
+                <div class="msg-meta">${m.fecha}</div>
+            </div>
+            <button onclick="copyMsg('${m.id}')" style="background:#28a745;padding:5px 9px;font-size:12px;">📋 Copiar</button>
+            <button class="red" onclick="delMsg('${m.id}')" style="padding:5px 9px;font-size:12px;">🗑️</button>
+        </div>`).join('');
+}
+
+function renderDashboard(){
+    const ingreso = apps.reduce((s,a)=>s+clientes.filter(c=>Number(c.app_id)===Number(a.id)).length*a.precio,0);
+    const inversion = apps.reduce((s,a)=>s+(a.inversion||0),0);
+    const ganancia = ingreso-inversion;
+    fid('d-clientes').textContent = clientes.length;
+    fid('d-apps').textContent = apps.length;
+    fid('d-ingreso').textContent = 'S/ '+ingreso;
+    fid('d-inversion').textContent = 'S/ '+inversion;
+    fid('resumen').innerHTML = `
+        Ingresos totales: <strong style="color:#28a745">S/ ${ingreso}</strong> &nbsp;|&nbsp;
+        Inversión total: <strong style="color:#dc3545">S/ ${inversion}</strong> &nbsp;|&nbsp;
+        Ganancia neta: <strong style="font-size:16px;color:${ganancia>=0?'#28a745':'#dc3545'}">S/ ${ganancia}</strong>`;
+}
+
+// ---------- ACCIONES ----------
+async function crearApp(){
+    const nombre = fid('a-nombre').value.trim();
+    const tipo = fid('a-tipo').value;
+    const precio = parseInt(fid('a-precio').value)||10;
+    const cupos = parseInt(fid('a-cupos').value)||18;
+    const inversion = parseFloat(fid('a-inversion').value)||0;
+    const fecha_pago = fid('a-fpago').value;
+    if(!nombre||!fecha_pago){ alert('⚠️ Nombre y Fecha de Pago son obligatorios'); return; }
+    try {
+        const {error} = await db.from('apps').insert([{nombre,tipo,precio,cupos,inversion,fecha_pago}]);
+        if(error) throw error;
+        fid('a-nombre').value=''; fid('a-fpago').value='';
+        alert('✅ App creada');
+        await load();
+    } catch(e){ alert('❌ Error: '+e.message); }
+}
+
+async function agregarCliente(){
+    const nombre = fid('c-nombre').value.trim();
+    const telefono = fid('c-tel').value.trim();
+    const app_id = parseInt(fid('c-app').value)||null;
+    const correo = fid('c-correo').value||null;
+    const fecha_inicio = fid('c-finicio').value||hoy();
+    const fecha_pago = fid('c-fpago').value||null;
+    if(!nombre||!telefono){ alert('⚠️ Nombre y Teléfono son obligatorios'); return; }
+    try {
+        const app = apps.find(a=>a.id===app_id);
+        const {error} = await db.from('clientes').insert([{
+            nombre, telefono, app: app?app.nombre:null, app_id,
+            correo, fecha_inicio, fecha_pago,
+            fecha_registro: new Date().toISOString(),
+            wa_link: 'https://wa.me/'+telefono.replace(/\D/g,'')
+        }]);
+        if(error) throw error;
+        fid('c-nombre').value=''; fid('c-tel').value='';
+        fid('c-app').value=''; fid('c-correo').value='';
+        fid('c-finicio').value=hoy(); fid('c-fpago').value='';
+        alert('✅ Cliente agregado');
+        await load();
+    } catch(e){ alert('❌ Error: '+e.message); }
+}
+
+async function asignar(){
+    const clienteId = parseInt(fid('as-cli').value);
+    const app_id = parseInt(fid('as-app').value)||null;
+    const correo = fid('as-correo').value||null;
+    const fecha_pago = fid('as-fpago').value||null;
+    if(!clienteId){ alert('⚠️ Selecciona un cliente'); return; }
+    try {
+        const app = app_id ? apps.find(a=>a.id===app_id) : null;
+        const {error} = await db.from('clientes').update({
+            app: app?app.nombre:null, app_id, correo, fecha_pago
+        }).eq('id',clienteId);
+        if(error) throw error;
+        fid('as-cli').value=''; fid('as-app').value='';
+        fid('as-correo').value=''; fid('as-fpago').value='';
+        alert('✅ Actualizado');
+        await load();
+    } catch(e){ alert('❌ Error: '+e.message); }
+}
+
+function onChangeAppCliente(){
+    const id = fid('c-app').value;
+    fillCorreoSelect('c-correo', id);
+}
+function onChangeAppAsignar(){
+    const id = fid('as-app').value;
+    fillCorreoSelect('as-correo', id);
+}
+function onChangeAppEdit(){
+    const id = fid('edit-app').value;
+    fillCorreoSelect('edit-correo', id);
+}
+
+// EDITAR CLIENTE
+function abrirEditar(id){
+    const c = clientes.find(x=>x.id===id);
+    if(!c) return;
+    fid('edit-id').value=c.id;
+    fid('edit-nombre').value=c.nombre||'';
+    fid('edit-tel').value=c.telefono||'';
+    fid('edit-finicio').value=c.fecha_inicio?c.fecha_inicio.split('T')[0]:(c.fecha_registro?c.fecha_registro.split('T')[0]:'');
+    fid('edit-fpago').value=c.fecha_pago?c.fecha_pago.split('T')[0]:'';
+    fillAppSelect('edit-app', c.app_id||'');
+    fillCorreoSelect('edit-correo', c.app_id||'', c.correo||'');
+    fid('modal-edit').classList.add('on');
+}
+
+async function guardarEdicion(){
+    const id = parseInt(fid('edit-id').value);
+    const nombre = fid('edit-nombre').value.trim();
+    const telefono = fid('edit-tel').value.trim();
+    const app_id = parseInt(fid('edit-app').value)||null;
+    const correo = fid('edit-correo').value||null;
+    const fecha_inicio = fid('edit-finicio').value||null;
+    const fecha_pago = fid('edit-fpago').value||null;
+    if(!nombre||!telefono){ alert('⚠️ Nombre y teléfono obligatorios'); return; }
+    try {
+        const app = app_id ? apps.find(a=>a.id===app_id) : null;
+        const {error} = await db.from('clientes').update({
+            nombre, telefono, app:app?app.nombre:null, app_id, correo, fecha_inicio, fecha_pago,
+            wa_link:'https://wa.me/'+telefono.replace(/\D/g,'')
+        }).eq('id',id);
+        if(error) throw error;
+        cerrarModal('modal-edit');
+        alert('✅ Guardado');
+        await load();
+    } catch(e){ alert('❌ Error: '+e.message); }
+}
+
+// CORREOS
+function addCorreo(){
+    const appId = fid('sh-app').value;
+    const c = fid('sh-correo').value.trim();
+    if(!appId||!c){ alert('⚠️ Selecciona app y escribe correo'); return; }
+    if(!correos[appId]) correos[appId]=[];
+    if(correos[appId].includes(c)){ alert('Ya existe'); return; }
+    correos[appId].push(c);
+    localStorage.setItem('correos',JSON.stringify(correos));
+    fid('sh-correo').value='';
+    renderCorreosApp();
+    alert('✅ Correo agregado');
+}
+function delCorreo(appId,idx){
+    if(!confirm('¿Eliminar?')) return;
+    correos[appId].splice(idx,1);
+    localStorage.setItem('correos',JSON.stringify(correos));
+    renderCorreosApp();
+}
+
+// MENSAJES
+function addMsg(){
+    const txt = fid('msg-new').value.trim();
+    if(!txt){ alert('⚠️ Escribe un mensaje'); return; }
+    msgs.unshift({id:Date.now().toString(), texto:txt, fecha:new Date().toLocaleString('es-PE')});
+    localStorage.setItem('msgs',JSON.stringify(msgs));
+    fid('msg-new').value='';
+    renderMsgs();
+}
+function copyMsg(id){
+    const m = msgs.find(x=>x.id===id);
+    if(!m) return;
+    navigator.clipboard.writeText(m.texto).then(()=>alert('✅ Copiado'));
+}
+function delMsg(id){
+    msgs = msgs.filter(x=>x.id!==id);
+    localStorage.setItem('msgs',JSON.stringify(msgs));
+    renderMsgs();
+}
+
+// ELIMINAR
+async function delApp(id){
+    if(!confirm('¿Eliminar app?')) return;
+    try { await db.from('apps').delete().eq('id',id); await load(); }
+    catch(e){ alert('❌ '+e.message); }
+}
+async function delCliente(id){
+    if(!confirm('¿Eliminar cliente?')) return;
+    try { await db.from('clientes').delete().eq('id',id); await load(); }
+    catch(e){ alert('❌ '+e.message); }
+}
+
+// INIT
+document.getElementById('c-finicio').value = hoy();
+document.getElementById('a-fpago').value = hoy();
+load();
+</script>
 </body>
 </html>
