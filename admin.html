@@ -63,6 +63,8 @@
         .mbox .fbtn button { flex: 1; }
         a { color: var(--primary); text-decoration: none; cursor: pointer; }
         a:hover { text-decoration: underline; }
+        .wa-btn { background: #25d366; padding: 4px 8px; font-size: 11px; margin-left: 5px; }
+        .wa-btn:hover { background: #1ea852; }
         @media (max-width: 700px) {
             .grid2, .grid4 { grid-template-columns: 1fr; }
             header { flex-direction: column; text-align: center; }
@@ -72,7 +74,7 @@
 <body>
 <div class="wrap">
     <header>
-        <div><h1>👨‍💼 Panel Admin v6.0</h1><small>🟢 Con Edición de Apps y Grupos</small></div>
+        <div><h1>👨‍💼 Panel Admin v6.1</h1><small>🟢 Corregido: Correo, WhatsApp, Fechas Automáticas</small></div>
         <div class="hbtns">
             <button class="hbtn" onclick="toggleDM()">🌙 Modo Oscuro</button>
             <button class="hbtn" onclick="salir()">Cerrar Sesión</button>
@@ -142,13 +144,13 @@
             </div>
             <div class="grid2">
                 <div class="fg"><label>Fecha Inicio</label><input type="date" id="c-finicio"></div>
-                <div class="fg"><label>Próx. Pago</label><input type="date" id="c-fpago"></div>
+                <div class="fg"><label>Próx. Pago (Auto +30d)</label><input type="date" id="c-fpago" readonly></div>
             </div>
             <button class="full" onclick="agregarCliente()">✅ Agregar</button>
         </div>
         <div class="card">
             <h2>👥 Todos los Clientes</h2>
-            <table><thead><tr><th>Nombre</th><th>Tel</th><th>App</th><th>Correo</th><th>Inicio</th><th>Pago</th><th>Acciones</th></tr></thead>
+            <table><thead><tr><th>Nombre</th><th>Tel</th><th>App</th><th>Correo</th><th>Inicio</th><th>Pago</th><th>WhatsApp</th><th>Acciones</th></tr></thead>
             <tbody id="t-clientes"></tbody></table>
         </div>
     </div>
@@ -275,6 +277,11 @@ function inicializarSupabase() {
 
 function fid(id) { return document.getElementById(id); }
 function hoy() { return new Date().toISOString().split('T')[0]; }
+function mesProximo() { 
+    let d = new Date();
+    d.setDate(d.getDate() + 30);
+    return d.toISOString().split('T')[0];
+}
 function fmt(d) { return d ? new Date(d).toLocaleDateString('es-PE') : '-'; }
 
 function selectTab(name, btn) {
@@ -370,8 +377,12 @@ function renderApps() {
 
 function renderClientes() {
     const tb = fid('t-clientes');
-    if (!clientes.length) { tb.innerHTML = '<tr><td colspan="7">Sin clientes</td></tr>'; fid('t-recientes').innerHTML = '<tr><td colspan="5">Sin clientes</td></tr>'; return; }
-    tb.innerHTML = clientes.map(c => `<tr><td>${c.nombre}</td><td>${c.telefono}</td><td>${c.app || '-'}</td><td>${c.correo || '-'}</td><td>${fmt(c.fecha_inicio || c.fecha_registro)}</td><td>${fmt(c.fecha_pago)}</td><td><button class="sm" onclick="abrirEditar(${c.id})">✏️</button><button class="sm red" onclick="eliminarCliente(${c.id})">🗑️</button></td></tr>`).join('');
+    if (!clientes.length) { tb.innerHTML = '<tr><td colspan="8">Sin clientes</td></tr>'; fid('t-recientes').innerHTML = '<tr><td colspan="5">Sin clientes</td></tr>'; return; }
+    tb.innerHTML = clientes.map(c => {
+        const tel = c.telefono.replace(/\D/g, '');
+        const waLink = `https://wa.me/${tel}`;
+        return `<tr><td>${c.nombre}</td><td>${c.telefono}</td><td>${c.app || '-'}</td><td>${c.correo || '-'}</td><td>${fmt(c.fecha_inicio || c.fecha_registro)}</td><td>${fmt(c.fecha_pago)}</td><td><a href="${waLink}" target="_blank" class="wa-btn">💬</a></td><td><button class="sm" onclick="abrirEditar(${c.id})">✏️</button><button class="sm red" onclick="eliminarCliente(${c.id})">🗑️</button></td></tr>`;
+    }).join('');
     fid('t-recientes').innerHTML = clientes.slice(0, 5).map(c => `<tr><td>${c.nombre}</td><td>${c.app || '-'}</td><td>${c.correo || '-'}</td><td>${fmt(c.fecha_registro)}</td><td>${fmt(c.fecha_pago)}</td></tr>`).join('');
 }
 
@@ -466,8 +477,7 @@ function renderMsgs() {
 }
 
 function renderDashboard() {
-    const ingreso = apps.reduce((s, a) => s + clientes.filter(c => Number(c.app_id) === Number(a.id)).length * a.
-precio, 0);
+    const ingreso = apps.reduce((s, a) => s + clientes.filter(c => Number(c.app_id) === Number(a.id)).length * a.precio, 0);
     const inversion = apps.reduce((s, a) => s + (a.inversion || 0), 0);
     const ganancia = ingreso - inversion;
     fid('d-clientes').textContent = clientes.length;
@@ -535,7 +545,7 @@ async function agregarCliente() {
     const app_id = fid('c-app').value ? parseInt(fid('c-app').value) : null;
     const correo = fid('c-correo').value || null;
     const fecha_inicio = fid('c-finicio').value || hoy();
-    const fecha_pago = fid('c-fpago').value || null;
+    const fecha_pago = mesProximo();
     if (!nombre || !telefono) { alert('⚠️ Nombre y Teléfono requeridos'); return; }
     try {
         const app = app_id ? apps.find(a => a.id === app_id) : null;
@@ -550,7 +560,7 @@ async function agregarCliente() {
         fid('c-app').value = '';
         fid('c-correo').value = '';
         fid('c-finicio').value = hoy();
-        fid('c-fpago').value = '';
+        fid('c-fpago').value = mesProximo();
         alert('✅ Cliente agregado');
         await cargarDatos();
     } catch (e) {
@@ -723,6 +733,7 @@ document.addEventListener('DOMContentLoaded', () => {
     msgs = JSON.parse(localStorage.getItem('msgs') || '[]');
     if (localStorage.dm === '1') document.body.classList.add('dm');
     fid('c-finicio').value = hoy();
+    fid('c-fpago').value = mesProximo();
     fid('a-fpago').value = hoy();
     
     setTimeout(() => {
