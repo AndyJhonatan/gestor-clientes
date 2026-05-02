@@ -56,7 +56,7 @@
                 <input type="tel" id="telefono" placeholder="+51 999 999 999" required>
             </div>
 
-            <button id="btn-registrar" onclick="registrar()" disabled>Cargando...</button>
+            <button id="btn-registrar" onclick="registrar()">Registrarme</button>
         </div>
 
         <div class="success" id="success">
@@ -84,10 +84,6 @@
         
         const { createClient } = window.supabase;
         const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-
-        // Habilitar botón cuando se cargue
-        document.getElementById('btn-registrar').disabled = false;
-        document.getElementById('btn-registrar').textContent = 'Registrarme';
 
         async function registrar() {
             const nombre = document.getElementById('nombre').value.trim();
@@ -120,7 +116,7 @@
 
             } catch (err) {
                 console.error('Error:', err);
-                alert('❌ Error al registrar');
+                alert('❌ Error al registrar: ' + err.message);
                 document.getElementById('btn-registrar').disabled = false;
                 document.getElementById('btn-registrar').textContent = 'Registrarme';
             }
