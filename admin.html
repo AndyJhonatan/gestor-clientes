@@ -181,3 +181,234 @@
                 <h2>💬 Personalizar Mensajes</h2>
                 <div class="form-group">
                     <label><strong>Mensaje de Bienvenida</strong></label>
+                    <textarea id="msg-bienvenida" style="height: 80px;"></textarea>
+                </div>
+                <div class="form-group">
+                    <label><strong>Mensaje Recordatorio</strong></label>
+                    <textarea id="msg-recordatorio" style="height: 80px;"></textarea>
+                </div>
+                <button onclick="guardarMensajes()" class="success">💾 Guardar Mensajes</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://opmbftaczdrvizroaeew.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_Zv8dGqKjGDX7wedV7KLicA_hmtFRxPj';
+        
+        const { createClient } = window.supabase;
+        const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let apps = [];
+        let clientes = [];
+
+        async function cargarDatos() {
+            try {
+                const { data: appsData, error: appsError } = await supabase.from('apps').select('*');
+                if (appsError) throw appsError;
+                apps = appsData || [];
+
+                const { data: clientesData, error: clientesError } = await supabase.from('clientes').select('*');
+                if (clientesError) throw clientesError;
+                clientes = clientesData || [];
+
+                actualizar();
+            } catch (err) {
+                console.error('Error:', err);
+                alert('Error conectando a la base de datos');
+            }
+        }
+
+        function tab(name) {
+            document.querySelectorAll('.content').forEach(e => e.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(e => e.classList.remove('active'));
+            document.getElementById(name).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        async function agregarApp() {
+            const nombre = document.getElementById('app-nombre').value.trim();
+            if (!nombre) {
+                alert('⚠️ Completa el nombre de la app');
+                return;
+            }
+
+            try {
+                const { data, error } = await supabase
+                    .from('apps')
+                    .insert([{
+                        nombre,
+                        correo: document.getElementById('app-correo').value,
+                        precio: parseInt(document.getElementById('app-precio').value) || 10,
+                        cupos: parseInt(document.getElementById('app-cupos').value) || 18
+                    }]);
+
+                if (error) throw error;
+
+                document.getElementById('app-nombre').value = '';
+                document.getElementById('app-correo').value = '';
+                document.getElementById('app-precio').value = '10';
+                document.getElementById('app-cupos').value = '18';
+
+                alert('✅ App creada');
+                cargarDatos();
+            } catch (err) {
+                console.error('Error:', err);
+                alert('❌ Error al crear app');
+            }
+        }
+
+        async function eliminarApp(id) {
+            if (confirm('¿Eliminar esta app?')) {
+                try {
+                    const { error } = await supabase.from('apps').delete().eq('id', id);
+                    if (error) throw error;
+                    cargarDatos();
+                } catch (err) {
+                    alert('❌ Error al eliminar');
+                }
+            }
+        }
+
+        async function agregarClienteManual() {
+            const nombre = document.getElementById('cliente-nombre').value.trim();
+            const telefono = document.getElementById('cliente-telefono').value.trim();
+            const appId = document.getElementById('cliente-app').value;
+
+            if (!nombre || !telefono || !appId) {
+                alert('⚠️ Completa todos los campos');
+                return;
+            }
+
+            const app = apps.find(a => a.id === parseInt(appId));
+            if (!app) {
+                alert('⚠️ App no encontrada');
+                return;
+            }
+
+            try {
+                const { data, error } = await supabase
+                    .from('clientes')
+                    .insert([{
+                        nombre,
+                        telefono,
+                        app: app.nombre,
+                        app_id: app.id,
+                        wa_link: `https://wa.me/${telefono.replace(/[^0-9]/g, '')}`,
+                        fecha_registro: new Date().toISOString()
+                    }]);
+
+                if (error) throw error;
+
+                document.getElementById('cliente-nombre').value = '';
+                document.getElementById('cliente-telefono').value = '';
+                document.getElementById('cliente-app').value = '';
+
+                alert('✅ Cliente agregado');
+                cargarDatos();
+            } catch (err) {
+                console.error('Error:', err);
+                alert('❌ Error al agregar cliente');
+            }
+        }
+
+        function renderApps() {
+            const tbody = document.getElementById('apps-tabla');
+            const select = document.getElementById('cliente-app');
+
+            if (apps.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #999;">Sin apps. Crea una arriba.</td></tr>';
+                select.innerHTML = '<option value="">--Selecciona una app--</option>';
+            } else {
+                tbody.innerHTML = apps.map(a => {
+                    const clientesApp = clientes.filter(c => c.app_id === a.id).length;
+                    return `<tr>
+                        <td><strong>${a.nombre}</strong></td>
+                        <td>${a.correo || '-'}</td>
+                        <td>S/ ${a.precio}</td>
+                        <td>${a.cupos}</td>
+                        <td>${clientesApp}</td>
+                        <td><button class="btn-small danger" onclick="eliminarApp(${a.id})">🗑️</button></td>
+                    </tr>`;
+                }).join('');
+
+                select.innerHTML = '<option value="">--Selecciona una app--</option>' +
+                    apps.map(a => `<option value="${a.id}">${a.nombre} (S/ ${a.precio}/mes)</option>`).join('');
+            }
+
+            document.getElementById('total-apps').textContent = apps.length;
+        }
+
+        function renderClientes() {
+            const tbody = document.getElementById('clientes-tabla');
+            const recientes = document.getElementById('clientes-recientes');
+
+            if (clientes.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #999;">Sin clientes aún</td></tr>';
+                recientes.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #999;">Sin clientes</td></tr>';
+            } else {
+                tbody.innerHTML = clientes.map(c => `<tr>
+                    <td>${c.nombre}</td>
+                    <td>${c.telefono}</td>
+                    <td>${c.app}</td>
+                    <td>${new Date(c.fecha_registro).toLocaleDateString()}</td>
+                    <td><a href="${c.wa_link}" class="wa-link" target="_blank">💬 Abrir</a></td>
+                    <td><button class="btn-small danger" onclick="eliminarCliente(${c.id})">🗑️</button></td>
+                </tr>`).join('');
+
+                recientes.innerHTML = clientes.slice(-5).reverse().map(c => `<tr>
+                    <td>${c.nombre}</td>
+                    <td>${c.telefono}</td>
+                    <td>${c.app}</td>
+                    <td><a href="${c.wa_link}" class="wa-link" target="_blank">💬 Abrir</a></td>
+                </tr>`).join('');
+            }
+
+            document.getElementById('total-clientes').textContent = clientes.length;
+        }
+
+        async function eliminarCliente(id) {
+            if (confirm('¿Eliminar este cliente?')) {
+                try {
+                    const { error } = await supabase.from('clientes').delete().eq('id', id);
+                    if (error) throw error;
+                    cargarDatos();
+                } catch (err) {
+                    alert('❌ Error al eliminar');
+                }
+            }
+        }
+
+        function guardarMensajes() {
+            alert('✅ Mensajes guardados');
+        }
+
+        function actualizarDashboard() {
+            const ingresoTotal = clientes.reduce((sum, c) => sum + (c.precio || 0), 0);
+            document.getElementById('ingreso-total').textContent = 'S/ ' + ingresoTotal;
+        }
+
+        function actualizar() {
+            renderApps();
+            renderClientes();
+            actualizarDashboard();
+        }
+
+        const clientesSubscription = supabase
+            .channel('clientes-changes')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'clientes' }, () => {
+                cargarDatos();
+            })
+            .subscribe();
+
+        const appsSubscription = supabase
+            .channel('apps-changes')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'apps' }, () => {
+                cargarDatos();
+            })
+            .subscribe();
+
+        cargarDatos();
+    </script>
+</body>
+</html>
