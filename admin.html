@@ -74,7 +74,7 @@
 <body>
 <div class="wrap">
     <header>
-        <div><h1>👨‍💼 Panel Admin v6.1</h1><small>🟢 Corregido: Correo, WhatsApp, Fechas Automáticas</small></div>
+        <div><h1>👨‍💼 Panel Admin v6.2</h1><small>🟢 ARREGLADO: Correos en Grupos</small></div>
         <div class="hbtns">
             <button class="hbtn" onclick="toggleDM()">🌙 Modo Oscuro</button>
             <button class="hbtn" onclick="salir()">Cerrar Sesión</button>
@@ -200,7 +200,6 @@
     </div>
 </div>
 
-<!-- MODAL EDITAR CLIENTE -->
 <div id="modal-edit" class="modal">
     <div class="mbox">
         <h2>✏️ Editar Cliente</h2>
@@ -224,7 +223,6 @@
     </div>
 </div>
 
-<!-- MODAL EDITAR APP -->
 <div id="modal-eapp" class="modal">
     <div class="mbox">
         <h2>✏️ Editar App</h2>
@@ -246,7 +244,6 @@
     </div>
 </div>
 
-<!-- MODAL EDITAR GRUPO -->
 <div id="modal-egrp" class="modal">
     <div class="mbox">
         <h2>✏️ Editar Grupo</h2>
@@ -546,25 +543,37 @@ async function agregarCliente() {
     const correo = fid('c-correo').value || null;
     const fecha_inicio = fid('c-finicio').value || hoy();
     const fecha_pago = mesProximo();
+    
     if (!nombre || !telefono) { alert('⚠️ Nombre y Teléfono requeridos'); return; }
+    if (app_id && !correo) { alert('⚠️ Debes seleccionar un Correo para esta App'); return; }
+    
     try {
         const app = app_id ? apps.find(a => a.id === app_id) : null;
         const { error } = await db.from('clientes').insert([{
-            nombre, telefono, app: app ? app.nombre : null, app_id, correo, fecha_inicio, fecha_pago,
+            nombre, 
+            telefono, 
+            app: app ? app.nombre : null, 
+            app_id: app_id || null, 
+            correo: correo || null, 
+            fecha_inicio, 
+            fecha_pago,
             fecha_registro: new Date().toISOString(),
             wa_link: 'https://wa.me/' + telefono.replace(/\D/g, '')
         }]);
+        
         if (error) throw error;
+        
         fid('c-nombre').value = '';
         fid('c-tel').value = '';
         fid('c-app').value = '';
         fid('c-correo').value = '';
         fid('c-finicio').value = hoy();
         fid('c-fpago').value = mesProximo();
-        alert('✅ Cliente agregado');
+        alert('✅ Cliente agregado correctamente');
         await cargarDatos();
     } catch (e) {
-        alert('❌ ' + e.message);
+        alert('❌ Error: ' + e.message);
+        console.error(e);
     }
 }
 
@@ -573,16 +582,25 @@ async function asignar() {
     const app_id = fid('as-app').value ? parseInt(fid('as-app').value) : null;
     const correo = fid('as-correo').value || null;
     const fecha_pago = fid('as-fpago').value || null;
+    
     if (!clienteId) { alert('⚠️ Selecciona cliente'); return; }
+    if (app_id && !correo) { alert('⚠️ Debes seleccionar un Correo para esta App'); return; }
+    
     try {
         const app = app_id ? apps.find(a => a.id === app_id) : null;
-        const { error } = await db.from('clientes').update({ app: app ? app.nombre : null, app_id, correo, fecha_pago }).eq('id', clienteId);
+        const { error } = await db.from('clientes').update({ 
+            app: app ? app.nombre : null, 
+            app_id: app_id || null, 
+            correo: correo || null, 
+            fecha_pago 
+        }).eq('id', clienteId);
+        
         if (error) throw error;
         fid('as-cli').value = '';
         fid('as-app').value = '';
         fid('as-correo').value = '';
         fid('as-fpago').value = '';
-        alert('✅ Actualizado');
+        alert('✅ Cliente actualizado');
         await cargarDatos();
     } catch (e) {
         alert('❌ ' + e.message);
@@ -614,13 +632,23 @@ async function guardarEdicion() {
     const correo = fid('edit-correo').value || null;
     const fecha_inicio = fid('edit-finicio').value || null;
     const fecha_pago = fid('edit-fpago').value || null;
+    
     if (!nombre || !telefono) { alert('⚠️ Nombre y Teléfono obligatorios'); return; }
+    if (app_id && !correo) { alert('⚠️ Debes seleccionar un Correo para esta App'); return; }
+    
     try {
         const app = app_id ? apps.find(a => a.id === app_id) : null;
         const { error } = await db.from('clientes').update({
-            nombre, telefono, app: app ? app.nombre : null, app_id, correo, fecha_inicio, fecha_pago,
+            nombre, 
+            telefono, 
+            app: app ? app.nombre : null, 
+            app_id: app_id || null, 
+            correo: correo || null, 
+            fecha_inicio, 
+            fecha_pago,
             wa_link: 'https://wa.me/' + telefono.replace(/\D/g, '')
         }).eq('id', id);
+        
         if (error) throw error;
         cerrarModal('modal-edit');
         alert('✅ Guardado');
