@@ -44,7 +44,7 @@
             <div class="form-group">
                 <label>¿Cuál app quieres?</label>
                 <select id="app" required>
-                    <option value="">--Selecciona--</option>
+                    <option value="">--Cargando apps--</option>
                 </select>
             </div>
 
@@ -58,10 +58,19 @@
     </div>
 
     <script>
-        let apps = JSON.parse(localStorage.getItem('apps')) || [];
+        let apps = [];
         let clientes = JSON.parse(localStorage.getItem('clientes')) || [];
 
-        function cargarApps() {
+        async function cargarApps() {
+            try {
+                const response = await fetch('./config.json');
+                const data = await response.json();
+                apps = data.apps || [];
+            } catch (err) {
+                console.log('Error cargando config.json, usando localStorage');
+                apps = JSON.parse(localStorage.getItem('apps')) || [];
+            }
+
             const select = document.getElementById('app');
             if (apps.length === 0) {
                 select.innerHTML = '<option value="">Sin apps disponibles</option>';
@@ -102,13 +111,6 @@
 
             console.log('Cliente registrado:', cliente);
         }
-
-        window.addEventListener('storage', (e) => {
-            if (e.key === 'apps') {
-                apps = JSON.parse(e.newValue) || [];
-                cargarApps();
-            }
-        });
 
         cargarApps();
     </script>
