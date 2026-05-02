@@ -4,12 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel Admin - Gestor Clientes</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; }
         .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
         header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px; border-radius: 10px; margin-bottom: 20px; }
         header h1 { font-size: 24px; margin-bottom: 5px; }
+        .status { font-size: 12px; opacity: 0.9; }
         .tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
         .tab-btn { padding: 10px 15px; background: #ddd; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: 0.3s; }
         .tab-btn.active { background: #667eea; color: white; }
@@ -53,6 +55,7 @@
         <header>
             <h1>👨‍💼 Panel Admin - Gestor Clientes</h1>
             <p>Administra tus apps y clientes</p>
+            <p class="status">🟢 Conectado en tiempo real</p>
         </header>
 
         <div class="tabs">
@@ -178,220 +181,3 @@
                 <h2>💬 Personalizar Mensajes</h2>
                 <div class="form-group">
                     <label><strong>Mensaje de Bienvenida</strong></label>
-                    <textarea id="msg-bienvenida" style="height: 80px;"></textarea>
-                </div>
-                <div class="form-group">
-                    <label><strong>Mensaje Recordatorio</strong></label>
-                    <textarea id="msg-recordatorio" style="height: 80px;"></textarea>
-                </div>
-                <button onclick="guardarMensajes()" class="success">💾 Guardar Mensajes</button>
-            </div>
-
-            <div class="card">
-                <h2>🗑️ Peligro</h2>
-                <p style="font-size: 12px; color: #666; margin-bottom: 10px;">⚠️ Estas acciones no se pueden deshacer</p>
-                <button onclick="borrarTodo()" class="danger">Borrar TODOS los datos</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        let apps = JSON.parse(localStorage.getItem('apps')) || [];
-        let clientes = JSON.parse(localStorage.getItem('clientes')) || [];
-        let mensajes = JSON.parse(localStorage.getItem('mensajes')) || {
-            bienvenida: "¡Bienvenido! Aquí está tu código de acceso.",
-            recordatorio: "Recordatorio: Tu acceso vence pronto."
-        };
-
-        function tab(name) {
-            document.querySelectorAll('.content').forEach(e => e.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(e => e.classList.remove('active'));
-            document.getElementById(name).classList.add('active');
-            event.target.classList.add('active');
-        }
-
-        function guardar() {
-            localStorage.setItem('apps', JSON.stringify(apps));
-            localStorage.setItem('clientes', JSON.stringify(clientes));
-            localStorage.setItem('mensajes', JSON.stringify(mensajes));
-        }
-
-        function agregarApp() {
-            const nombre = document.getElementById('app-nombre').value.trim();
-            if (!nombre) {
-                alert('⚠️ Completa el nombre de la app');
-                return;
-            }
-
-            const app = {
-                id: Date.now(),
-                nombre,
-                correo: document.getElementById('app-correo').value,
-                precio: parseInt(document.getElementById('app-precio').value) || 10,
-                cupos: parseInt(document.getElementById('app-cupos').value) || 18
-            };
-
-            apps.push(app);
-            guardar();
-
-            document.getElementById('app-nombre').value = '';
-            document.getElementById('app-correo').value = '';
-            document.getElementById('app-precio').value = '10';
-            document.getElementById('app-cupos').value = '18';
-
-            alert('✅ App creada');
-            actualizar();
-        }
-
-        function eliminarApp(id) {
-            if (confirm('¿Eliminar esta app? Los clientes asignados seguirán registrados.')) {
-                apps = apps.filter(a => a.id !== id);
-                guardar();
-                actualizar();
-            }
-        }
-
-        function agregarClienteManual() {
-            const nombre = document.getElementById('cliente-nombre').value.trim();
-            const telefono = document.getElementById('cliente-telefono').value.trim();
-            const appId = document.getElementById('cliente-app').value;
-
-            if (!nombre || !telefono || !appId) {
-                alert('⚠️ Completa todos los campos');
-                return;
-            }
-
-            const app = apps.find(a => a.id === parseInt(appId));
-            if (!app) {
-                alert('⚠️ App no encontrada');
-                return;
-            }
-
-            const cliente = {
-                id: Date.now(),
-                nombre,
-                telefono,
-                appId: app.id,
-                app: app.nombre,
-                precio: app.precio,
-                wa_link: `https://wa.me/${telefono.replace(/[^0-9]/g, '')}`,
-                fecha: new Date().toISOString()
-            };
-
-            clientes.push(cliente);
-            guardar();
-
-            document.getElementById('cliente-nombre').value = '';
-            document.getElementById('cliente-telefono').value = '';
-            document.getElementById('cliente-app').value = '';
-
-            alert('✅ Cliente agregado');
-            actualizar();
-        }
-
-        function renderApps() {
-            const tbody = document.getElementById('apps-tabla');
-            const select = document.getElementById('cliente-app');
-
-            if (apps.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #999;">Sin apps. Crea una arriba.</td></tr>';
-                select.innerHTML = '<option value="">--Selecciona una app--</option>';
-            } else {
-                tbody.innerHTML = apps.map(a => {
-                    const clientesApp = clientes.filter(c => c.appId === a.id).length;
-                    return `<tr>
-                        <td><strong>${a.nombre}</strong></td>
-                        <td>${a.correo || '-'}</td>
-                        <td>S/ ${a.precio}</td>
-                        <td>${a.cupos}</td>
-                        <td>${clientesApp}</td>
-                        <td><button class="btn-small danger" onclick="eliminarApp(${a.id})">🗑️</button></td>
-                    </tr>`;
-                }).join('');
-
-                select.innerHTML = '<option value="">--Selecciona una app--</option>' +
-                    apps.map(a => `<option value="${a.id}">${a.nombre} (S/ ${a.precio}/mes)</option>`).join('');
-            }
-
-            document.getElementById('total-apps').textContent = apps.length;
-        }
-
-        function renderClientes() {
-            const tbody = document.getElementById('clientes-tabla');
-            const recientes = document.getElementById('clientes-recientes');
-
-            if (clientes.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #999;">Sin clientes aún</td></tr>';
-                recientes.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #999;">Sin clientes</td></tr>';
-            } else {
-                tbody.innerHTML = clientes.map(c => `<tr>
-                    <td>${c.nombre}</td>
-                    <td>${c.telefono}</td>
-                    <td>${c.app}</td>
-                    <td>${new Date(c.fecha).toLocaleDateString()}</td>
-                    <td><a href="${c.wa_link}" class="wa-link" target="_blank">💬 Abrir</a></td>
-                    <td><button class="btn-small danger" onclick="eliminarCliente(${c.id})">🗑️</button></td>
-                </tr>`).join('');
-
-                recientes.innerHTML = clientes.slice(-5).reverse().map(c => `<tr>
-                    <td>${c.nombre}</td>
-                    <td>${c.telefono}</td>
-                    <td>${c.app}</td>
-                    <td><a href="${c.wa_link}" class="wa-link" target="_blank">💬 Abrir</a></td>
-                </tr>`).join('');
-            }
-
-            document.getElementById('total-clientes').textContent = clientes.length;
-        }
-
-        function eliminarCliente(id) {
-            if (confirm('¿Eliminar este cliente?')) {
-                clientes = clientes.filter(c => c.id !== id);
-                guardar();
-                actualizar();
-            }
-        }
-
-        function guardarMensajes() {
-            mensajes.bienvenida = document.getElementById('msg-bienvenida').value;
-            mensajes.recordatorio = document.getElementById('msg-recordatorio').value;
-            guardar();
-            alert('✅ Mensajes guardados');
-        }
-
-        function borrarTodo() {
-            if (confirm('⚠️ ¿ELIMINAR TODO? No se puede deshacer.')) {
-                if (confirm('¿En serio? Esta es tu última oportunidad.')) {
-                    localStorage.clear();
-                    location.reload();
-                }
-            }
-        }
-
-        function actualizarDashboard() {
-            const ingresoTotal = clientes.reduce((sum, c) => sum + c.precio, 0);
-            document.getElementById('ingreso-total').textContent = 'S/ ' + ingresoTotal;
-        }
-
-        function cargarMensajes() {
-            document.getElementById('msg-bienvenida').value = mensajes.bienvenida || '';
-            document.getElementById('msg-recordatorio').value = mensajes.recordatorio || '';
-        }
-
-        function actualizar() {
-            renderApps();
-            renderClientes();
-            actualizarDashboard();
-        }
-
-        window.addEventListener('storage', (e) => {
-            if (e.key === 'apps') apps = JSON.parse(e.newValue) || [];
-            if (e.key === 'clientes') clientes = JSON.parse(e.newValue) || [];
-            actualizar();
-        });
-
-        actualizar();
-        cargarMensajes();
-    </script>
-</body>
-</html>
