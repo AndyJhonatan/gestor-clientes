@@ -8,15 +8,8 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
-            --bg: #f5f5f5;
-            --card: #fff;
-            --text: #333;
-            --light: #666;
-            --border: #ddd;
-            --primary: #667eea;
-            --dark: #5568d3;
-            --danger: #dc3545;
-            --success: #28a745;
+            --bg: #f5f5f5; --card: #fff; --text: #333; --light: #666; --border: #ddd;
+            --primary: #667eea; --dark: #5568d3; --danger: #dc3545; --success: #28a745;
         }
         body.dm { --bg: #1a1a1a; --card: #2d2d2d; --text: #e0e0e0; --light: #aaa; --border: #444; }
         body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); transition: 0.2s; }
@@ -44,7 +37,6 @@
         button.sm { padding: 4px 8px; font-size: 11px; }
         button.full { width: 100%; }
         .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-        .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
         .grid4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 14px; }
         table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
         th { background: var(--border); padding: 8px; text-align: left; font-weight: 700; }
@@ -70,7 +62,7 @@
         .mbox .fbtn { display: flex; gap: 10px; margin-top: 16px; }
         .mbox .fbtn button { flex: 1; }
         @media (max-width: 700px) {
-            .grid2, .grid3, .grid4 { grid-template-columns: 1fr; }
+            .grid2, .grid4 { grid-template-columns: 1fr; }
             header { flex-direction: column; text-align: center; }
         }
     </style>
@@ -78,7 +70,7 @@
 <body>
 <div class="wrap">
     <header>
-        <div><h1>👨‍💼 Panel Admin v5.0</h1><small>🟢 Sistema con Memoria Persistente</small></div>
+        <div><h1>👨‍💼 Panel Admin v5.0</h1><small>🟢 Sistema Funcional</small></div>
         <div class="hbtns">
             <button class="hbtn" onclick="toggleDM()">🌙 Modo Oscuro</button>
             <button class="hbtn" onclick="salir()">Cerrar Sesión</button>
@@ -95,7 +87,6 @@
         <button class="tbtn" onclick="selectTab('portapapeles',this)">📋 Portapapeles</button>
     </div>
 
-    <!-- INICIO -->
     <div id="inicio" class="pane on">
         <div class="grid4">
             <div class="met"><div class="mv" id="d-clientes">0</div><div class="ml">Clientes</div></div>
@@ -114,65 +105,58 @@
         </div>
     </div>
 
-    <!-- APPS -->
     <div id="apps" class="pane">
         <div class="card">
             <h2>➕ Nueva App</h2>
             <div class="grid2">
-                <div class="fg"><label>Nombre *</label><input id="a-nombre" placeholder="ChatGPT, Netflix..."></div>
-                <div class="fg"><label>Tipo *</label><select id="a-tipo"><option value="personal">Personal</option><option value="shared">Compartida</option></select></div>
+                <div class="fg"><label>Nombre</label><input id="a-nombre" placeholder="ChatGPT, Netflix..."></div>
+                <div class="fg"><label>Tipo</label><select id="a-tipo"><option value="personal">Personal</option><option value="shared">Compartida</option></select></div>
             </div>
             <div class="grid4">
                 <div class="fg"><label>Precio (S/)</label><input type="number" id="a-precio" value="10"></div>
                 <div class="fg"><label>Cupos</label><input type="number" id="a-cupos" value="18"></div>
                 <div class="fg"><label>Inversión (S/)</label><input type="number" id="a-inversion" value="78"></div>
-                <div class="fg"><label>Fecha Pago *</label><input type="date" id="a-fpago"></div>
+                <div class="fg"><label>Fecha Pago</label><input type="date" id="a-fpago"></div>
             </div>
             <button class="full" onclick="crearApp()">✅ Crear</button>
         </div>
         <div class="card">
             <h2>📱 Mis Apps</h2>
-            <table>
-                <thead><tr><th>App</th><th>Tipo</th><th>Precio</th><th>Inv.</th><th>F.Pago</th><th>Clientes</th><th>Acción</th></tr></thead>
-                <tbody id="t-apps"></tbody>
-            </table>
+            <table><thead><tr><th>App</th><th>Tipo</th><th>Precio</th><th>Inv.</th><th>F.Pago</th><th>Clientes</th><th>Acción</th></tr></thead>
+            <tbody id="t-apps"></tbody></table>
         </div>
     </div>
 
-    <!-- CLIENTES -->
     <div id="clientes" class="pane">
         <div class="card">
             <h2>➕ Agregar Cliente</h2>
             <div class="grid2">
-                <div class="fg"><label>Nombre *</label><input id="c-nombre" placeholder="Juan Pérez"></div>
-                <div class="fg"><label>Teléfono *</label><input id="c-tel" placeholder="999999999"></div>
+                <div class="fg"><label>Nombre</label><input id="c-nombre" placeholder="Juan Pérez"></div>
+                <div class="fg"><label>Teléfono</label><input id="c-tel" placeholder="999999999"></div>
             </div>
             <div class="grid2">
-                <div class="fg"><label>App *</label><select id="c-app" onchange="cambioAppCliente()"><option value="">--Selecciona--</option></select></div>
+                <div class="fg"><label>App</label><select id="c-app" onchange="cambioAppCliente()"><option value="">--Selecciona--</option></select></div>
                 <div class="fg"><label>Correo</label><select id="c-correo"><option value="">--Sin correo--</option></select></div>
             </div>
             <div class="grid2">
-                <div class="fg"><label>Fecha Inicio *</label><input type="date" id="c-finicio"></div>
+                <div class="fg"><label>Fecha Inicio</label><input type="date" id="c-finicio"></div>
                 <div class="fg"><label>Próx. Pago</label><input type="date" id="c-fpago"></div>
             </div>
             <button class="full" onclick="agregarCliente()">✅ Agregar</button>
         </div>
         <div class="card">
             <h2>👥 Todos los Clientes</h2>
-            <table>
-                <thead><tr><th>Nombre</th><th>Tel</th><th>App</th><th>Correo</th><th>Inicio</th><th>Pago</th><th>Acciones</th></tr></thead>
-                <tbody id="t-clientes"></tbody>
-            </table>
+            <table><thead><tr><th>Nombre</th><th>Tel</th><th>App</th><th>Correo</th><th>Inicio</th><th>Pago</th><th>Acciones</th></tr></thead>
+            <tbody id="t-clientes"></tbody></table>
         </div>
     </div>
 
-    <!-- ASIGNAR -->
     <div id="asignar" class="pane">
         <div class="card">
             <h2>🔗 Actualizar Cliente</h2>
             <div class="grid2">
-                <div class="fg"><label>Cliente *</label><select id="as-cli"><option value="">--Selecciona--</option></select></div>
-                <div class="fg"><label>App *</label><select id="as-app" onchange="cambioAppAsignar()"><option value="">--Sin app--</option></select></div>
+                <div class="fg"><label>Cliente</label><select id="as-cli"><option value="">--Selecciona--</option></select></div>
+                <div class="fg"><label>App</label><select id="as-app" onchange="cambioAppAsignar()"><option value="">--Sin app--</option></select></div>
             </div>
             <div class="grid2">
                 <div class="fg"><label>Correo</label><select id="as-correo"><option value="">--Sin correo--</option></select></div>
@@ -182,22 +166,15 @@
         </div>
     </div>
 
-    <!-- COMPARTIDAS -->
     <div id="compartidas" class="pane">
         <div class="card">
             <h2>📧 Gestionar Correos por App</h2>
             <div class="grid2">
                 <div class="fg"><label>App Compartida</label><select id="sh-app" onchange="renderCorreos()"><option value="">--Selecciona--</option></select></div>
-                <div class="fg"><label>Nuevo Correo</label>
-                    <div style="display: flex; gap: 8px;">
-                        <input id="sh-correo" placeholder="usuario@gmail.com" style="flex: 1;">
-                        <button onclick="agregarCorreo()" style="width: auto; padding: 8px 12px;">➕</button>
-                    </div>
-                </div>
+                <div class="fg"><label>Nuevo Correo</label><div style="display: flex; gap: 8px;"><input id="sh-correo" placeholder="usuario@gmail.com" style="flex: 1;"><button onclick="agregarCorreo()" style="width: auto; padding: 8px 12px;">➕</button></div></div>
             </div>
             <div id="sh-correos-lista"></div>
         </div>
-
         <div class="card">
             <h2>👁️ Vista por Grupos</h2>
             <div class="fg"><label>App Compartida</label><select id="sh-vista-app" onchange="renderVista()"><option value="">--Selecciona--</option></select></div>
@@ -205,29 +182,20 @@
         </div>
     </div>
 
-    <!-- GANANCIAS -->
     <div id="ganancias" class="pane">
-        <div class="card">
-            <h2>💰 Ganancias por App</h2>
-            <div id="g-lista"></div>
-        </div>
+        <div class="card"><h2>💰 Ganancias por App</h2><div id="g-lista"></div></div>
     </div>
 
-    <!-- PORTAPAPELES -->
     <div id="portapapeles" class="pane">
         <div class="card">
             <h2>➕ Nuevo Mensaje</h2>
             <div class="fg"><textarea id="msg-new" rows="4" placeholder="Escribe tu mensaje..."></textarea></div>
             <button class="full" onclick="agregarMsg()">💾 Guardar</button>
         </div>
-        <div class="card">
-            <h2>📋 Mensajes</h2>
-            <div id="msg-lista"></div>
-        </div>
+        <div class="card"><h2>📋 Mensajes</h2><div id="msg-lista"></div></div>
     </div>
 </div>
 
-<!-- MODAL EDITAR CLIENTE -->
 <div id="modal-edit" class="modal">
     <div class="mbox">
         <h2>✏️ Editar Cliente</h2>
@@ -252,28 +220,31 @@
 </div>
 
 <script>
-// INICIALIZAR SUPABASE PRIMERO
-const URL = 'https://opmbftaczdrvizroaeew.supabase.co';
-const KEY = 'sb_publishable_Zv8dGqKjGDX7wedV7KLicA_hmtFRxPj';
-const { createClient } = window.supabase;
-const db = createClient(URL, KEY);
-
-// Variables globales
+let db = null;
 let apps = [], clientes = [], appCorreos = {}, msgs = [];
 
-// Dark Mode
-if (localStorage.dm === '1') document.body.classList.add('dm');
-function toggleDM() {
-    document.body.classList.toggle('dm');
-    localStorage.dm = document.body.classList.contains('dm') ? '1' : '0';
+function inicializarSupabase() {
+    const URL = 'https://opmbftaczdrvizroaeew.supabase.co';
+    const KEY = 'sb_publishable_Zv8dGqKjGDX7wedV7KLicA_hmtFRxPj';
+    db = window.supabase.createClient(URL, KEY);
+    console.log('✅ Supabase inicializado');
+    cargarDatos();
 }
 
-// Tabs
+function fid(id) { return document.getElementById(id); }
+function hoy() { return new Date().toISOString().split('T')[0]; }
+function fmt(d) { return d ? new Date(d).toLocaleDateString('es-PE') : '-'; }
+
 function selectTab(name, btn) {
     document.querySelectorAll('.pane').forEach(p => p.classList.remove('on'));
     document.querySelectorAll('.tbtn').forEach(b => b.classList.remove('on'));
-    document.getElementById(name).classList.add('on');
+    fid(name).classList.add('on');
     btn.classList.add('on');
+}
+
+function toggleDM() {
+    document.body.classList.toggle('dm');
+    localStorage.dm = document.body.classList.contains('dm') ? '1' : '0';
 }
 
 function salir() {
@@ -281,30 +252,49 @@ function salir() {
 }
 
 function cerrarModal(id) {
-    document.getElementById(id).classList.remove('on');
+    fid(id).classList.remove('on');
 }
 
-function hoy() {
-    return new Date().toISOString().split('T')[0];
+async function cargarDatos() {
+    if (!db) return;
+    try {
+        const [appsRes, clientesRes, correosRes] = await Promise.all([
+            db.from('apps').select('*'),
+            db.from('clientes').select('*').order('fecha_registro', { ascending: false }),
+            db.from('app_correos').select('*')
+        ]);
+        apps = appsRes.data || [];
+        clientes = clientesRes.data || [];
+        appCorreos = {};
+        (correosRes.data || []).forEach(row => {
+            if (!appCorreos[row.app_id]) appCorreos[row.app_id] = [];
+            appCorreos[row.app_id].push(row.correo);
+        });
+        actualizar();
+    } catch (e) {
+        console.error('Error:', e);
+    }
 }
 
-function fmt(d) {
-    return d ? new Date(d).toLocaleDateString('es-PE') : '-';
+function actualizar() {
+    renderApps();
+    renderClientes();
+    renderSelects();
+    renderCompartidas();
+    renderGanancias();
+    renderMsgs();
+    renderDashboard();
 }
-
-function fid(id) { return document.getElementById(id); }
 
 function correosDeApp(appId) {
-    appId = Number(appId);
-    return appCorreos[appId] || [];
+    return appCorreos[Number(appId)] || [];
 }
 
 function llenarSelectCorreos(selectId, appId, valor = '') {
     appId = Number(appId);
     const sel = fid(selectId);
     sel.innerHTML = '<option value="">--Sin correo--</option>';
-    const cs = correosDeApp(appId);
-    cs.forEach(c => {
+    correosDeApp(appId).forEach(c => {
         const o = document.createElement('option');
         o.value = c;
         o.textContent = c;
@@ -325,107 +315,34 @@ function llenarSelectApps(selectId, valor = '') {
     });
 }
 
-// CARGAR DATOS
-async function cargarDatos() {
-    try {
-        const [appsRes, clientesRes, correosRes] = await Promise.all([
-            db.from('apps').select('*'),
-            db.from('clientes').select('*').order('fecha_registro', { ascending: false }),
-            db.from('app_correos').select('*')
-        ]);
-
-        apps = appsRes.data || [];
-        clientes = clientesRes.data || [];
-        
-        appCorreos = {};
-        (correosRes.data || []).forEach(row => {
-            if (!appCorreos[row.app_id]) appCorreos[row.app_id] = [];
-            appCorreos[row.app_id].push(row.correo);
-        });
-
-        actualizar();
-    } catch (e) {
-        console.error('Error:', e);
-        alert('❌ Error al conectar: ' + e.message);
-    }
-}
-
-function actualizar() {
-    renderApps();
-    renderClientes();
-    renderSelects();
-    renderCompartidas();
-    renderGanancias();
-    renderMsgs();
-    renderDashboard();
-}
-
-// RENDERS
 function renderApps() {
     const tb = fid('t-apps');
-    if (!apps.length) {
-        tb.innerHTML = '<tr><td colspan="7" style="text-align: center;">Sin apps</td></tr>';
-        return;
-    }
+    if (!apps.length) { tb.innerHTML = '<tr><td colspan="7">Sin apps</td></tr>'; return; }
     tb.innerHTML = apps.map(a => {
         const n = clientes.filter(c => Number(c.app_id) === Number(a.id)).length;
-        return `<tr>
-            <td><strong>${a.nombre}</strong></td>
-            <td><span class="tip ${a.tipo === 'shared' ? 's' : 'p'}">${a.tipo.toUpperCase()}</span></td>
-            <td>S/ ${a.precio}</td>
-            <td>S/ ${a.inversion || 0}</td>
-            <td>${fmt(a.fecha_pago)}</td>
-            <td>${n}</td>
-            <td><button class="sm red" onclick="eliminarApp(${a.id})">🗑️</button></td>
-        </tr>`;
+        return `<tr><td><strong>${a.nombre}</strong></td><td><span class="tip ${a.tipo === 'shared' ? 's' : 'p'}">${a.tipo}</span></td><td>S/ ${a.precio}</td><td>S/ ${a.inversion || 0}</td><td>${fmt(a.fecha_pago)}</td><td>${n}</td><td><button class="sm red" onclick="eliminarApp(${a.id})">🗑️</button></td></tr>`;
     }).join('');
 }
 
 function renderClientes() {
     const tb = fid('t-clientes');
-    if (!clientes.length) {
-        tb.innerHTML = '<tr><td colspan="7" style="text-align: center;">Sin clientes</td></tr>';
-        fid('t-recientes').innerHTML = '<tr><td colspan="5" style="text-align: center;">Sin clientes</td></tr>';
-        return;
-    }
-    
-    tb.innerHTML = clientes.map(c => `<tr>
-        <td>${c.nombre}</td>
-        <td>${c.telefono}</td>
-        <td>${c.app || '--'}</td>
-        <td>${c.correo || '-'}</td>
-        <td>${fmt(c.fecha_inicio || c.fecha_registro)}</td>
-        <td>${fmt(c.fecha_pago)}</td>
-        <td>
-            <button class="sm" onclick="abrirEditar(${c.id})">✏️</button>
-            <button class="sm red" onclick="eliminarCliente(${c.id})">🗑️</button>
-        </td>
-    </tr>`).join('');
-
-    fid('t-recientes').innerHTML = clientes.slice(0, 5).map(c => `<tr>
-        <td>${c.nombre}</td>
-        <td>${c.app || '-'}</td>
-        <td>${c.correo || '-'}</td>
-        <td>${fmt(c.fecha_registro)}</td>
-        <td>${fmt(c.fecha_pago)}</td>
-    </tr>`).join('');
+    if (!clientes.length) { tb.innerHTML = '<tr><td colspan="7">Sin clientes</td></tr>'; fid('t-recientes').innerHTML = '<tr><td colspan="5">Sin clientes</td></tr>'; return; }
+    tb.innerHTML = clientes.map(c => `<tr><td>${c.nombre}</td><td>${c.telefono}</td><td>${c.app || '-'}</td><td>${c.correo || '-'}</td><td>${fmt(c.fecha_inicio || c.fecha_registro)}</td><td>${fmt(c.fecha_pago)}</td><td><button class="sm" onclick="abrirEditar(${c.id})">✏️</button><button class="sm red" onclick="eliminarCliente(${c.id})">🗑️</button></td></tr>`).join('');
+    fid('t-recientes').innerHTML = clientes.slice(0, 5).map(c => `<tr><td>${c.nombre}</td><td>${c.app || '-'}</td><td>${c.correo || '-'}</td><td>${fmt(c.fecha_registro)}</td><td>${fmt(c.fecha_pago)}</td></tr>`).join('');
 }
 
 function renderSelects() {
     llenarSelectApps('c-app');
     llenarSelectApps('as-app');
-    
-    const selCliente = fid('as-cli');
-    selCliente.innerHTML = '<option value="">--Selecciona--</option>';
+    const sc = fid('as-cli');
+    sc.innerHTML = '<option value="">--Selecciona--</option>';
     clientes.forEach(c => {
         const o = document.createElement('option');
         o.value = c.id;
         o.textContent = c.nombre + (c.app ? ` (${c.app})` : '');
-        selCliente.appendChild(o);
+        sc.appendChild(o);
     });
-
-    const shApps = [fid('sh-app'), fid('sh-vista-app')];
-    shApps.forEach(sel => {
+    [fid('sh-app'), fid('sh-vista-app')].forEach(sel => {
         sel.innerHTML = '<option value="">--Selecciona--</option>';
         apps.filter(a => a.tipo === 'shared').forEach(a => {
             const o = document.createElement('option');
@@ -434,172 +351,82 @@ function renderSelects() {
             sel.appendChild(o);
         });
     });
-
     llenarSelectApps('edit-app');
 }
 
 function renderCompartidas() {
-    const appId = fid('sh-app').value;
-    if (appId) renderCorreos();
-    
-    const vistaId = fid('sh-vista-app').value;
-    if (vistaId) renderVista();
+    if (fid('sh-app').value) renderCorreos();
+    if (fid('sh-vista-app').value) renderVista();
 }
 
 function renderCorreos() {
     const appId = Number(fid('sh-app').value);
     const lista = fid('sh-correos-lista');
-    
-    if (!appId) {
-        lista.innerHTML = '';
-        return;
-    }
-
+    if (!appId) { lista.innerHTML = ''; return; }
     const cs = correosDeApp(appId);
-    if (!cs.length) {
-        lista.innerHTML = '<p style="margin-top: 10px; color: var(--light);">Sin correos registrados</p>';
-        return;
-    }
-
-    lista.innerHTML = `<div style="margin-top: 12px;">${cs.map((c, i) => `
-        <div style="background: var(--border); padding: 9px 12px; border-radius: 6px; margin: 6px 0; display: flex; justify-content: space-between; align-items: center;">
-            <span>📧 ${c}</span>
-            <button class="sm red" onclick="delCorreo(${appId}, ${i})">🗑️</button>
-        </div>`).join('')}</div>`;
+    lista.innerHTML = !cs.length ? '<p style="margin-top: 10px; color: var(--light);">Sin correos</p>' : `<div style="margin-top: 12px;">${cs.map((c, i) => `<div style="background: var(--border); padding: 9px 12px; border-radius: 6px; margin: 6px 0; display: flex; justify-content: space-between;"><span>📧 ${c}</span><button class="sm red" onclick="delCorreo(${appId}, ${i})">🗑️</button></div>`).join('')}</div>`;
 }
 
 function renderVista() {
     const appId = Number(fid('sh-vista-app').value);
     const vista = fid('sh-vista');
-    
-    if (!appId) {
-        vista.innerHTML = '';
-        return;
-    }
-
-    const app = apps.find(a => Number(a.id) === appId);
-    if (!app) return;
-
+    if (!appId) { vista.innerHTML = ''; return; }
     const cs = correosDeApp(appId);
     const clientesApp = clientes.filter(c => Number(c.app_id) === appId);
-
-    if (!cs.length) {
-        vista.innerHTML = '<p style="margin-top: 12px; color: var(--light);">No hay correos. Agrégalos en "Gestionar Correos".</p>';
-        return;
-    }
-
+    if (!cs.length) { vista.innerHTML = '<p>Sin correos</p>'; return; }
     let html = `<div style="margin-top: 12px; font-size: 12px; color: var(--light);">Total: ${clientesApp.length} cliente(s) | ${cs.length} grupo(s)</div>`;
-
     cs.forEach(correo => {
         const grupo = clientesApp.filter(c => c.correo === correo);
-        html += `<div class="grupo">
-            <h4>📧 ${correo} <span style="background: var(--primary); color: #fff; padding: 2px 8px; border-radius: 10px; font-size: 11px;">${grupo.length}</span></h4>`;
-        
-        if (!grupo.length) {
-            html += '<p style="font-size: 12px; color: var(--light);">Sin clientes</p>';
-        } else {
-            grupo.forEach(c => {
-                html += `<div class="cli-row">
-                    <div>
-                        <strong>${c.nombre}</strong><br>
-                        <small>${c.telefono} | Inicio: ${fmt(c.fecha_inicio || c.fecha_registro)} | Pago: ${fmt(c.fecha_pago)}</small>
-                    </div>
-                    <button class="sm" onclick="abrirEditar(${c.id})">✏️</button>
-                </div>`;
-            });
-        }
-        html += '</div>';
+        html += `<div class="grupo"><h4>📧 ${correo} <span style="background: var(--primary); color: #fff; padding: 2px 8px; border-radius: 10px; font-size: 11px;">${grupo.length}</span></h4>${!grupo.length ? '<p>Sin clientes</p>' : grupo.map(c => `<div class="cli-row"><div><strong>${c.nombre}</strong><br><small>${c.telefono}</small></div><button class="sm" onclick="abrirEditar(${c.id})">✏️</button></div>`).join('')}</div>`;
     });
-
     vista.innerHTML = html;
 }
 
 function renderGanancias() {
     const lista = fid('g-lista');
-    if (!apps.length) {
-        lista.innerHTML = '<p>Sin apps</p>';
-        return;
-    }
-
+    if (!apps.length) { lista.innerHTML = '<p>Sin apps</p>'; return; }
     lista.innerHTML = apps.map(a => {
         const clientesApp = clientes.filter(c => Number(c.app_id) === Number(a.id));
         const ingreso = clientesApp.length * a.precio;
         const inversion = a.inversion || 0;
         const ganancia = ingreso - inversion;
-        const color = ganancia >= 0 ? '#28a745' : '#dc3545';
-
-        return `<div style="border: 1px solid var(--border); border-radius: 8px; padding: 14px; margin: 10px 0;">
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-                <div>
-                    <strong>${a.nombre}</strong> <span class="tip ${a.tipo === 'shared' ? 's' : 'p'}">${a.tipo}</span>
-                    <div style="font-size: 12px; color: var(--light); margin-top: 4px;">Precio: S/ ${a.precio} | F.Pago: ${fmt(a.fecha_pago)}</div>
-                </div>
-                <div style="text-align: right;">
-                    <div>Clientes: <strong>${clientesApp.length}</strong></div>
-                    <div>Ingreso: <strong style="color: #28a745;">S/ ${ingreso}</strong></div>
-                    <div>Inversión: <strong style="color: #dc3545;">S/ ${inversion}</strong></div>
-                    <div style="font-size: 16px; font-weight: bold; color: ${color}; margin-top: 4px;">S/ ${ganancia}</div>
-                </div>
-            </div>
-        </div>`;
+        return `<div style="border: 1px solid var(--border); border-radius: 8px; padding: 14px; margin: 10px 0;"><div style="display: flex; justify-content: space-between; flex-wrap: wrap;"><div><strong>${a.nombre}</strong> <span class="tip">${a.tipo}</span></div><div style="text-align: right;"><div>Clientes: ${clientesApp.length}</div><div>Ingreso: S/ ${ingreso}</div><div>Inversión: S/ ${inversion}</div><div style="font-size: 16px; font-weight: bold; color: ${ganancia >= 0 ? '#28a745' : '#dc3545'};margin-top: 4px;">S/ ${ganancia}</div></div></div></div>`;
     }).join('');
 }
 
 function renderMsgs() {
     const lista = fid('msg-lista');
-    if (!msgs.length) {
-        lista.innerHTML = '<p style="text-align: center; color: var(--light);">Sin mensajes</p>';
-        return;
-    }
-    lista.innerHTML = msgs.map(m => `
-        <div class="msg-item">
-            <div style="flex: 1;">
-                <div class="msg-txt">${m.texto}</div>
-                <small style="color: var(--light);">${m.fecha}</small>
-            </div>
-            <button onclick="copiarMsg('${m.id}')" style="background: #28a745; padding: 5px 9px; font-size: 12px;">📋</button>
-            <button class="red" onclick="delMsg('${m.id}')" style="padding: 5px 9px; font-size: 12px;">🗑️</button>
-        </div>`).join('');
+    if (!msgs.length) { lista.innerHTML = '<p style="text-align: center;">Sin mensajes</p>'; return; }
+    lista.innerHTML = msgs.map(m => `<div class="msg-item"><div style="flex: 1;"><div class="msg-txt">${m.texto}</div><small style="color: var(--light);">${m.fecha}</small></div><button onclick="copiarMsg('${m.id}')" style="background: #28a745; padding: 5px 9px; font-size: 12px;">📋</button><button class="red" onclick="delMsg('${m.id}')" style="padding: 5px 9px; font-size: 12px;">🗑️</button></div>`).join('');
 }
 
 function renderDashboard() {
     const ingreso = apps.reduce((s, a) => s + clientes.filter(c => Number(c.app_id) === Number(a.id)).length * a.precio, 0);
     const inversion = apps.reduce((s, a) => s + (a.inversion || 0), 0);
     const ganancia = ingreso - inversion;
-
     fid('d-clientes').textContent = clientes.length;
     fid('d-apps').textContent = apps.length;
     fid('d-ingreso').textContent = 'S/ ' + ingreso;
     fid('d-inversion').textContent = 'S/ ' + inversion;
-    fid('resumen').innerHTML = `
-        Ingresos: <strong style="color: #28a745;">S/ ${ingreso}</strong> | 
-        Inversión: <strong style="color: #dc3545;">S/ ${inversion}</strong> | 
-        Ganancia Neta: <strong style="font-size: 16px; color: ${ganancia >= 0 ? '#28a745' : '#dc3545'};">S/ ${ganancia}</strong>`;
+    fid('resumen').innerHTML = `Ingresos: <strong style="color: #28a745;">S/ ${ingreso}</strong> | Inversión: <strong style="color: #dc3545;">S/ ${inversion}</strong> | Ganancia Neta: <strong style="font-size: 16px; color: ${ganancia >= 0 ? '#28a745' : '#dc3545'};">S/ ${ganancia}</strong>`;
 }
 
-// ACCIONES
 async function crearApp() {
     const nombre = fid('a-nombre').value.trim();
     const tipo = fid('a-tipo').value;
     const precio = parseInt(fid('a-precio').value) || 10;
-    const cupos = parseInt(fid('a-cupos').value) || 18;
     const inversion = parseInt(fid('a-inversion').value) || 0;
     const fecha_pago = fid('a-fpago').value;
-
-    if (!nombre || !fecha_pago) {
-        alert('⚠️ Nombre y Fecha Pago son obligatorios');
-        return;
-    }
-
+    if (!nombre || !fecha_pago) { alert('⚠️ Completa todos los campos'); return; }
     try {
-        const { error } = await db.from('apps').insert([{ nombre, tipo, precio, cupos, inversion, fecha_pago }]);
+        const { error } = await db.from('apps').insert([{ nombre, tipo, precio, inversion, fecha_pago }]);
         if (error) throw error;
         fid('a-nombre').value = '';
         fid('a-fpago').value = '';
         alert('✅ App creada');
         await cargarDatos();
     } catch (e) {
-        alert('❌ Error: ' + e.message);
+        alert('❌ ' + e.message);
     }
 }
 
@@ -610,12 +437,7 @@ async function agregarCliente() {
     const correo = fid('c-correo').value || null;
     const fecha_inicio = fid('c-finicio').value || hoy();
     const fecha_pago = fid('c-fpago').value || null;
-
-    if (!nombre || !telefono) {
-        alert('⚠️ Nombre y Teléfono son obligatorios');
-        return;
-    }
-
+    if (!nombre || !telefono) { alert('⚠️ Nombre y Teléfono requeridos'); return; }
     try {
         const app = app_id ? apps.find(a => a.id === app_id) : null;
         const { error } = await db.from('clientes').insert([{
@@ -633,7 +455,7 @@ async function agregarCliente() {
         alert('✅ Cliente agregado');
         await cargarDatos();
     } catch (e) {
-        alert('❌ Error: ' + e.message);
+        alert('❌ ' + e.message);
     }
 }
 
@@ -642,17 +464,10 @@ async function asignar() {
     const app_id = fid('as-app').value ? parseInt(fid('as-app').value) : null;
     const correo = fid('as-correo').value || null;
     const fecha_pago = fid('as-fpago').value || null;
-
-    if (!clienteId) {
-        alert('⚠️ Selecciona un cliente');
-        return;
-    }
-
+    if (!clienteId) { alert('⚠️ Selecciona cliente'); return; }
     try {
         const app = app_id ? apps.find(a => a.id === app_id) : null;
-        const { error } = await db.from('clientes').update({
-            app: app ? app.nombre : null, app_id, correo, fecha_pago
-        }).eq('id', clienteId);
+        const { error } = await db.from('clientes').update({ app: app ? app.nombre : null, app_id, correo, fecha_pago }).eq('id', clienteId);
         if (error) throw error;
         fid('as-cli').value = '';
         fid('as-app').value = '';
@@ -661,7 +476,7 @@ async function asignar() {
         alert('✅ Actualizado');
         await cargarDatos();
     } catch (e) {
-        alert('❌ Error: ' + e.message);
+        alert('❌ ' + e.message);
     }
 }
 
@@ -690,12 +505,7 @@ async function guardarEdicion() {
     const correo = fid('edit-correo').value || null;
     const fecha_inicio = fid('edit-finicio').value || null;
     const fecha_pago = fid('edit-fpago').value || null;
-
-    if (!nombre || !telefono) {
-        alert('⚠️ Nombre y Teléfono obligatorios');
-        return;
-    }
-
+    if (!nombre || !telefono) { alert('⚠️ Nombre y Teléfono obligatorios'); return; }
     try {
         const app = app_id ? apps.find(a => a.id === app_id) : null;
         const { error } = await db.from('clientes').update({
@@ -707,19 +517,14 @@ async function guardarEdicion() {
         alert('✅ Guardado');
         await cargarDatos();
     } catch (e) {
-        alert('❌ Error: ' + e.message);
+        alert('❌ ' + e.message);
     }
 }
 
 async function agregarCorreo() {
     const appId = fid('sh-app').value;
     const correo = fid('sh-correo').value.trim();
-
-    if (!appId || !correo) {
-        alert('⚠️ Selecciona app y escribe correo');
-        return;
-    }
-
+    if (!appId || !correo) { alert('⚠️ Completa campos'); return; }
     try {
         const { error } = await db.from('app_correos').insert([{ app_id: parseInt(appId), correo }]);
         if (error) throw error;
@@ -727,28 +532,25 @@ async function agregarCorreo() {
         alert('✅ Correo agregado');
         await cargarDatos();
     } catch (e) {
-        alert('❌ Error: ' + (e.message.includes('UNIQUE') ? 'Este correo ya existe' : e.message));
+        alert('❌ ' + (e.message.includes('UNIQUE') ? 'Correo duplicado' : e.message));
     }
 }
 
 async function delCorreo(appId, idx) {
-    if (!confirm('¿Eliminar correo?')) return;
+    if (!confirm('¿Eliminar?')) return;
     try {
         const correo = correosDeApp(appId)[idx];
         const { error } = await db.from('app_correos').delete().eq('app_id', appId).eq('correo', correo);
         if (error) throw error;
         await cargarDatos();
     } catch (e) {
-        alert('❌ Error: ' + e.message);
+        alert('❌ ' + e.message);
     }
 }
 
 function agregarMsg() {
     const texto = fid('msg-new').value.trim();
-    if (!texto) {
-        alert('⚠️ Escribe un mensaje');
-        return;
-    }
+    if (!texto) { alert('⚠️ Escribe mensaje'); return; }
     msgs.unshift({ id: Date.now().toString(), texto, fecha: new Date().toLocaleString('es-PE') });
     localStorage.setItem('msgs', JSON.stringify(msgs));
     fid('msg-new').value = '';
@@ -768,33 +570,41 @@ function delMsg(id) {
 }
 
 async function eliminarApp(id) {
-    if (!confirm('¿Eliminar app?')) return;
+    if (!confirm('¿Eliminar?')) return;
     try {
         const { error } = await db.from('apps').delete().eq('id', id);
         if (error) throw error;
         await cargarDatos();
     } catch (e) {
-        alert('❌ Error: ' + e.message);
+        alert('❌ ' + e.message);
     }
 }
 
 async function eliminarCliente(id) {
-    if (!confirm('¿Eliminar cliente?')) return;
+    if (!confirm('¿Eliminar?')) return;
     try {
         const { error } = await db.from('clientes').delete().eq('id', id);
         if (error) throw error;
         await cargarDatos();
     } catch (e) {
-        alert('❌ Error: ' + e.message);
+        alert('❌ ' + e.message);
     }
 }
 
-// INIT
-msgs = JSON.parse(localStorage.getItem('msgs') || '[]');
-fid('c-finicio').value = hoy();
-fid('a-fpago').value = hoy();
-cargarDatos();
+document.addEventListener('DOMContentLoaded', () => {
+    msgs = JSON.parse(localStorage.getItem('msgs') || '[]');
+    if (localStorage.dm === '1') document.body.classList.add('dm');
+    fid('c-finicio').value = hoy();
+    fid('a-fpago').value = hoy();
+    
+    setTimeout(() => {
+        if (window.supabase) {
+            inicializarSupabase();
+        } else {
+            setTimeout(inicializarSupabase, 1000);
+        }
+    }, 500);
+});
 </script>
 </body>
 </html>
- fix: admin v5 corregido - supabase init correcto
