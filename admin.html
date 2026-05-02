@@ -466,7 +466,8 @@ function renderMsgs() {
 }
 
 function renderDashboard() {
-    const ingreso = apps.reduce((s, a) => s + clientes.filter(c => Number(c.app_id) === Number(a.id)).length * a.precio, 0);
+    const ingreso = apps.reduce((s, a) => s + clientes.filter(c => Number(c.app_id) === Number(a.id)).length * a.
+precio, 0);
     const inversion = apps.reduce((s, a) => s + (a.inversion || 0), 0);
     const ganancia = ingreso - inversion;
     fid('d-clientes').textContent = clientes.length;
