@@ -3,386 +3,114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Admin - Gestor Clientes</title>
+    <title>Registrate</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; }
-        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
-        header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px; border-radius: 10px; margin-bottom: 20px; }
-        header h1 { font-size: 24px; margin-bottom: 5px; }
-        .tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-        .tab-btn { padding: 10px 15px; background: #ddd; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: 0.3s; }
-        .tab-btn.active { background: #667eea; color: white; }
-        .content { display: none; }
-        .content.active { display: block; }
-        .card { background: white; padding: 20px; border-radius: 10px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
-        .card h2 { margin-bottom: 15px; color: #333; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; }
-        .form-group { margin-bottom: 12px; }
-        label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px; color: #333; }
-        input, select, textarea { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; font-family: inherit; }
-        input:focus, select:focus, textarea:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
-        button { padding: 8px 16px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.3s; }
-        button:hover { background: #5568d3; }
-        button.danger { background: #dc3545; }
-        button.danger:hover { background: #c82333; }
-        button.success { background: #28a745; }
-        button.success:hover { background: #218838; }
-        .table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
-        .table th { background: #f8f9fa; padding: 10px; text-align: left; font-weight: 600; border-bottom: 2px solid #ddd; }
-        .table td { padding: 10px; border-bottom: 1px solid #ddd; }
-        .table tr:hover { background: #f9f9f9; }
-        .btn-small { padding: 4px 8px; font-size: 11px; margin-right: 3px; }
-        .wa-link { color: #25d366; font-weight: 600; text-decoration: none; cursor: pointer; }
-        .wa-link:hover { text-decoration: underline; }
-        .row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .row.triple { grid-template-columns: 1fr 1fr 1fr; }
-        .metric { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px; border-radius: 8px; text-align: center; }
-        .metric-value { font-size: 24px; font-weight: bold; }
-        .metric-label { font-size: 11px; opacity: 0.9; margin-top: 5px; }
-        .alert { padding: 12px; border-radius: 6px; margin-bottom: 15px; font-size: 12px; }
-        .alert.info { background: #d1ecf1; color: #0c5460; }
-        @media (max-width: 768px) { 
-            .row { grid-template-columns: 1fr; }
-            .row.triple { grid-template-columns: 1fr; }
-        }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .container { background: white; border-radius: 15px; padding: 40px; max-width: 500px; width: 100%; }
+        h1 { color: #333; margin-bottom: 10px; }
+        p { color: #666; margin-bottom: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 5px; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
+        input:focus, select:focus { outline: none; border-color: #667eea; }
+        button { width: 100%; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; margin-top: 10px; }
+        button:hover { opacity: 0.9; }
+        .success { display: none; background: #d4edda; color: #155724; padding: 20px; border-radius: 8px; text-align: center; }
+        .success h2 { margin-bottom: 10px; }
+        .alert { padding: 10px; background: #d1ecf1; color: #0c5460; border-radius: 6px; margin-bottom: 15px; font-size: 12px; }
     </style>
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>👨‍💼 Panel Admin - Gestor Clientes</h1>
-            <p>Administra tus clientes, apps y configuración sin código</p>
-        </header>
+        <h1>🎉 ¡Bienvenido!</h1>
+        <p>Regístrate en 30 segundos</p>
 
-        <div class="tabs">
-            <button class="tab-btn active" onclick="tab('inicio')">Inicio</button>
-            <button class="tab-btn" onclick="tab('apps')">Apps</button>
-            <button class="tab-btn" onclick="tab('clientes')">Clientes</button>
-            <button class="tab-btn" onclick="tab('config')">⚙️ Configuración</button>
+        <div class="alert">
+            ✅ Solo necesitamos tu nombre y teléfono WhatsApp
         </div>
 
-        <div id="inicio" class="content active">
-            <div class="row triple">
-                <div class="metric">
-                    <div class="metric-value" id="total-clientes">0</div>
-                    <div class="metric-label">Total Clientes</div>
-                </div>
-                <div class="metric">
-                    <div class="metric-value" id="total-apps">0</div>
-                    <div class="metric-label">Apps Activas</div>
-                </div>
-                <div class="metric">
-                    <div class="metric-value" id="ingreso-total">S/ 0</div>
-                    <div class="metric-label">Ingreso Mensual</div>
-                </div>
+        <div id="form">
+            <div class="form-group">
+                <label>Tu nombre</label>
+                <input type="text" id="nombre" placeholder="Juan Pérez" required>
             </div>
 
-            <div class="card">
-                <h2>👥 Clientes Recientes</h2>
-                <table class="table">
-                    <thead>
-                        <tr><th>Nombre</th><th>Teléfono</th><th>App</th><th>WhatsApp</th></tr>
-                    </thead>
-                    <tbody id="clientes-recientes"></tbody>
-                </table>
+            <div class="form-group">
+                <label>Tu teléfono WhatsApp</label>
+                <input type="tel" id="telefono" placeholder="+51 999 999 999" required>
             </div>
+
+            <div class="form-group">
+                <label>¿Cuál app quieres?</label>
+                <select id="app" required>
+                    <option value="">--Selecciona--</option>
+                </select>
+            </div>
+
+            <button onclick="registrar()">Registrarme</button>
         </div>
 
-        <div id="apps" class="content">
-            <div class="card">
-                <h2>➕ Agregar Nueva App</h2>
-                <div class="row">
-                    <div class="form-group">
-                        <label>Nombre de la app *</label>
-                        <input type="text" id="app-nombre" placeholder="Ej: Netflix, Disney...">
-                    </div>
-                    <div class="form-group">
-                        <label>Correo de notificación</label>
-                        <input type="email" id="app-correo" placeholder="notificaciones@app.com">
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="form-group">
-                        <label>Precio mensual (S/)</label>
-                        <input type="number" id="app-precio" value="10" min="1">
-                    </div>
-                    <div class="form-group">
-                        <label>Cupos máximos</label>
-                        <input type="number" id="app-cupos" value="18" min="1">
-                    </div>
-                </div>
-                <button onclick="agregarApp()" style="width: 100%;">✅ Agregar App</button>
-            </div>
-
-            <div class="card">
-                <h2>📱 Todas Mis Apps</h2>
-                <table class="table">
-                    <thead>
-                        <tr><th>App</th><th>Correo</th><th>Precio</th><th>Cupos</th><th>Clientes</th><th>Acción</th></tr>
-                    </thead>
-                    <tbody id="apps-tabla"></tbody>
-                </table>
-            </div>
-        </div>
-
-        <div id="clientes" class="content">
-            <div class="card">
-                <h2>➕ Agregar Cliente Manualmente</h2>
-                <div class="row">
-                    <div class="form-group">
-                        <label>Nombre</label>
-                        <input type="text" id="cliente-nombre" placeholder="Juan Pérez">
-                    </div>
-                    <div class="form-group">
-                        <label>Teléfono WhatsApp</label>
-                        <input type="tel" id="cliente-telefono" placeholder="+51 999 999 999">
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="form-group">
-                        <label>App</label>
-                        <select id="cliente-app">
-                            <option value="">--Selecciona--</option>
-                        </select>
-                    </div>
-                </div>
-                <button onclick="agregarClienteManual()" style="width: 100%;">➕ Agregar Cliente</button>
-            </div>
-
-            <div class="card">
-                <h2>👥 Todos los Clientes</h2>
-                <table class="table">
-                    <thead>
-                        <tr><th>Nombre</th><th>Teléfono</th><th>App</th><th>Fecha</th><th>WhatsApp</th><th>Acción</th></tr>
-                    </thead>
-                    <tbody id="clientes-tabla"></tbody>
-                </table>
-            </div>
-        </div>
-
-        <div id="config" class="content">
-            <div class="alert info">
-                ⚙️ Personaliza tu negocio desde aquí
-            </div>
-
-            <div class="card">
-                <h2>💬 Personalizar Mensajes</h2>
-                <div class="form-group">
-                    <label><strong>Mensaje de Bienvenida</strong></label>
-                    <textarea id="msg-bienvenida" style="height: 80px;"></textarea>
-                </div>
-                <div class="form-group">
-                    <label><strong>Mensaje Recordatorio</strong></label>
-                    <textarea id="msg-recordatorio" style="height: 80px;"></textarea>
-                </div>
-                <button onclick="guardarMensajes()" class="success">💾 Guardar Mensajes</button>
-            </div>
-
-            <div class="card">
-                <h2>🗑️ Peligro</h2>
-                <p style="font-size: 12px; color: #666; margin-bottom: 10px;">⚠️ Estas acciones no se pueden deshacer</p>
-                <button onclick="borrarTodo()" class="danger">Borrar TODOS los datos</button>
-            </div>
+        <div class="success" id="success">
+            <h2>✅ ¡Registrado!</h2>
+            <p>El administrador te contactará pronto con tu código de acceso.</p>
         </div>
     </div>
 
     <script>
         let apps = JSON.parse(localStorage.getItem('apps')) || [];
         let clientes = JSON.parse(localStorage.getItem('clientes')) || [];
-        let mensajes = JSON.parse(localStorage.getItem('mensajes')) || {
-            bienvenida: "¡Bienvenido! Aquí está tu código de acceso.",
-            recordatorio: "Recordatorio: Tu acceso vence pronto."
-        };
 
-        function tab(name) {
-            document.querySelectorAll('.content').forEach(e => e.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(e => e.classList.remove('active'));
-            document.getElementById(name).classList.add('active');
-            event.target.classList.add('active');
-        }
-
-        function guardar() {
-            localStorage.setItem('apps', JSON.stringify(apps));
-            localStorage.setItem('clientes', JSON.stringify(clientes));
-            localStorage.setItem('mensajes', JSON.stringify(mensajes));
-        }
-
-        function agregarApp() {
-            const nombre = document.getElementById('app-nombre').value.trim();
-            if (!nombre) {
-                alert('⚠️ Completa el nombre de la app');
-                return;
-            }
-
-            const app = {
-                id: Date.now(),
-                nombre,
-                correo: document.getElementById('app-correo').value,
-                precio: parseInt(document.getElementById('app-precio').value) || 10,
-                cupos: parseInt(document.getElementById('app-cupos').value) || 18
-            };
-
-            apps.push(app);
-            guardar();
-
-            document.getElementById('app-nombre').value = '';
-            document.getElementById('app-correo').value = '';
-            document.getElementById('app-precio').value = '10';
-            document.getElementById('app-cupos').value = '18';
-
-            alert('✅ App agregada');
-            actualizar();
-        }
-
-        function eliminarApp(id) {
-            if (confirm('¿Eliminar esta app?')) {
-                apps = apps.filter(a => a.id !== id);
-                guardar();
-                actualizar();
+        function cargarApps() {
+            const select = document.getElementById('app');
+            if (apps.length === 0) {
+                select.innerHTML = '<option value="">Sin apps disponibles</option>';
+            } else {
+                select.innerHTML = '<option value="">--Selecciona--</option>' + 
+                    apps.map(a => `<option value="${a.id}|${a.nombre}|${a.precio}">${a.nombre} (S/ ${a.precio}/mes)</option>`).join('');
             }
         }
 
-        function agregarClienteManual() {
-            const nombre = document.getElementById('cliente-nombre').value.trim();
-            const telefono = document.getElementById('cliente-telefono').value.trim();
-            const appId = document.getElementById('cliente-app').value;
+        function registrar() {
+            const nombre = document.getElementById('nombre').value.trim();
+            const telefono = document.getElementById('telefono').value.trim();
+            const appSeleccionada = document.getElementById('app').value;
 
-            if (!nombre || !telefono || !appId) {
+            if (!nombre || !telefono || !appSeleccionada) {
                 alert('⚠️ Completa todos los campos');
                 return;
             }
 
-            const app = apps.find(a => a.id === parseInt(appId));
-            if (!app) {
-                alert('⚠️ App no encontrada');
-                return;
-            }
+            const [appId, appNombre, appPrecio] = appSeleccionada.split('|');
 
             const cliente = {
                 id: Date.now(),
                 nombre,
                 telefono,
-                appId: app.id,
-                app: app.nombre,
-                precio: app.precio,
+                appId: parseInt(appId),
+                app: appNombre,
+                precio: parseInt(appPrecio),
                 wa_link: `https://wa.me/${telefono.replace(/[^0-9]/g, '')}`,
                 fecha: new Date().toISOString()
             };
 
             clientes.push(cliente);
-            guardar();
+            localStorage.setItem('clientes', JSON.stringify(clientes));
 
-            document.getElementById('cliente-nombre').value = '';
-            document.getElementById('cliente-telefono').value = '';
-            document.getElementById('cliente-app').value = '';
+            document.getElementById('form').style.display = 'none';
+            document.getElementById('success').style.display = 'block';
 
-            alert('✅ Cliente agregado');
-            actualizar();
-        }
-
-        function renderApps() {
-            const tbody = document.getElementById('apps-tabla');
-            const select = document.getElementById('cliente-app');
-
-            if (apps.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #999;">Sin apps. Agrega una arriba.</td></tr>';
-                select.innerHTML = '<option value="">--Selecciona--</option>';
-            } else {
-                tbody.innerHTML = apps.map(a => {
-                    const clientesApp = clientes.filter(c => c.appId === a.id).length;
-                    return `<tr>
-                        <td><strong>${a.nombre}</strong></td>
-                        <td>${a.correo || '-'}</td>
-                        <td>S/ ${a.precio}</td>
-                        <td>${a.cupos}</td>
-                        <td>${clientesApp}</td>
-                        <td><button class="btn-small danger" onclick="eliminarApp(${a.id})">🗑️</button></td>
-                    </tr>`;
-                }).join('');
-
-                select.innerHTML = '<option value="">--Selecciona--</option>' +
-                    apps.map(a => `<option value="${a.id}">${a.nombre} (S/ ${a.precio}/mes)</option>`).join('');
-            }
-
-            document.getElementById('total-apps').textContent = apps.length;
-        }
-
-        function renderClientes() {
-            const tbody = document.getElementById('clientes-tabla');
-            const recientes = document.getElementById('clientes-recientes');
-
-            if (clientes.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #999;">Sin clientes aún</td></tr>';
-                recientes.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #999;">Sin clientes</td></tr>';
-            } else {
-                tbody.innerHTML = clientes.map(c => `<tr>
-                    <td>${c.nombre}</td>
-                    <td>${c.telefono}</td>
-                    <td>${c.app}</td>
-                    <td>${new Date(c.fecha).toLocaleDateString()}</td>
-                    <td><a href="${c.wa_link}" class="wa-link" target="_blank">💬 Abrir</a></td>
-                    <td><button class="btn-small danger" onclick="eliminarCliente(${c.id})">🗑️</button></td>
-                </tr>`).join('');
-
-                recientes.innerHTML = clientes.slice(-5).reverse().map(c => `<tr>
-                    <td>${c.nombre}</td>
-                    <td>${c.telefono}</td>
-                    <td>${c.app}</td>
-                    <td><a href="${c.wa_link}" class="wa-link" target="_blank">💬 Abrir</a></td>
-                </tr>`).join('');
-            }
-
-            document.getElementById('total-clientes').textContent = clientes.length;
-        }
-
-        function eliminarCliente(id) {
-            if (confirm('¿Eliminar cliente?')) {
-                clientes = clientes.filter(c => c.id !== id);
-                guardar();
-                actualizar();
-            }
-        }
-
-        function guardarMensajes() {
-            mensajes.bienvenida = document.getElementById('msg-bienvenida').value;
-            mensajes.recordatorio = document.getElementById('msg-recordatorio').value;
-            guardar();
-            alert('✅ Mensajes guardados');
-        }
-
-        function borrarTodo() {
-            if (confirm('⚠️ ¿ELIMINAR TODO? No se puede deshacer.')) {
-                if (confirm('¿En serio? Esta es tu última oportunidad.')) {
-                    localStorage.clear();
-                    location.reload();
-                }
-            }
-        }
-
-        function actualizarDashboard() {
-            const ingresoTotal = clientes.reduce((sum, c) => sum + c.precio, 0);
-            document.getElementById('ingreso-total').textContent = 'S/ ' + ingresoTotal;
-        }
-
-        function cargarMensajes() {
-            document.getElementById('msg-bienvenida').value = mensajes.bienvenida || '';
-            document.getElementById('msg-recordatorio').value = mensajes.recordatorio || '';
-        }
-
-        function actualizar() {
-            renderApps();
-            renderClientes();
-            actualizarDashboard();
+            console.log('Cliente registrado:', cliente);
         }
 
         window.addEventListener('storage', (e) => {
-            if (e.key === 'apps') apps = JSON.parse(e.newValue) || [];
-            if (e.key === 'clientes') clientes = JSON.parse(e.newValue) || [];
-            actualizar();
+            if (e.key === 'apps') {
+                apps = JSON.parse(e.newValue) || [];
+                cargarApps();
+            }
         });
 
-        actualizar();
-        cargarMensajes();
+        cargarApps();
     </script>
 </body>
 </html>
