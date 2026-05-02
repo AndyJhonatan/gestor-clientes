@@ -37,101 +37,77 @@
 <body>
     <div class="container">
         <button class="admin-btn" onclick="abrirAdmin()">⚙️</button>
-
         <h1>🎉 ¡Bienvenido!</h1>
         <p>Regístrate en 30 segundos</p>
-
-        <div class="alert">
-            ✅ Solo necesitamos tu nombre y teléfono WhatsApp
-        </div>
-
+        <div class="alert">✅ Solo necesitamos tu nombre y teléfono WhatsApp</div>
         <div id="form">
             <div class="form-group">
                 <label>Tu nombre completo *</label>
                 <input type="text" id="nombre" placeholder="Juan Pérez" required>
             </div>
-
             <div class="form-group">
                 <label>Tu teléfono WhatsApp *</label>
                 <input type="tel" id="telefono" placeholder="+51 999 999 999" required>
             </div>
-
             <button id="btn-registrar" onclick="registrar()">Registrarme</button>
         </div>
-
         <div class="success" id="success">
             <h2>✅ ¡Registrado!</h2>
-            <p>El administrador te contactará pronto con tu código de acceso.</p>
+            <p>El administrador te contactará pronto.</p>
         </div>
     </div>
-
-    <!-- Modal de contraseña -->
     <div id="modal-admin" class="modal">
         <div class="modal-content">
             <h2>🔐 Acceso Admin</h2>
-            <input type="password" id="password-input" placeholder="Ingresa la contraseña" onkeypress="if(event.key==='Enter') verificarPassword()">
+            <input type="password" id="password-input" placeholder="Contraseña" onkeypress="if(event.key==='Enter') verificarPassword()">
             <div class="modal-buttons">
                 <button class="cancel" onclick="cerrarModal()">Cancelar</button>
                 <button onclick="verificarPassword()">Entrar</button>
             </div>
         </div>
     </div>
-
     <script>
         const SUPABASE_URL = 'https://opmbftaczdrvizroaeew.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_Zv8dGqKjGDX7wedV7KLicA_hmtFRxPj';
         const CONTRASEÑA_ADMIN = '552083Aa';
-        
         const { createClient } = window.supabase;
         const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-
         async function registrar() {
             const nombre = document.getElementById('nombre').value.trim();
             const telefono = document.getElementById('telefono').value.trim();
-
             if (!nombre || !telefono) {
                 alert('⚠️ Completa todos los campos');
                 return;
             }
-
             try {
                 const btn = document.getElementById('btn-registrar');
                 btn.disabled = true;
                 btn.textContent = 'Registrando...';
-
-                const { data, error } = await supabase
-                    .from('clientes')
-                    .insert([{
-                        nombre,
-                        telefono,
-                        app: 'Sin asignar',
-                        wa_link: `https://wa.me/${telefono.replace(/[^0-9]/g, '')}`,
-                        fecha_registro: new Date().toISOString()
-                    }]);
-
+                const { data, error } = await supabase.from('clientes').insert([{
+                    nombre,
+                    telefono,
+                    app: 'Sin asignar',
+                    wa_link: `https://wa.me/${telefono.replace(/[^0-9]/g, '')}`,
+                    fecha_registro: new Date().toISOString()
+                }]);
                 if (error) throw error;
-
                 document.getElementById('form').style.display = 'none';
                 document.getElementById('success').style.display = 'block';
-
             } catch (err) {
                 console.error('Error:', err);
-                alert('❌ Error al registrar: ' + err.message);
+                alert('❌ Error: ' + err.message);
                 document.getElementById('btn-registrar').disabled = false;
                 document.getElementById('btn-registrar').textContent = 'Registrarme';
             }
         }
-
         function abrirAdmin() {
             document.getElementById('modal-admin').classList.add('active');
             document.getElementById('password-input').focus();
         }
-
         function cerrarModal() {
             document.getElementById('modal-admin').classList.remove('active');
             document.getElementById('password-input').value = '';
         }
-
         function verificarPassword() {
             const password = document.getElementById('password-input').value;
             if (password === CONTRASEÑA_ADMIN) {
@@ -141,8 +117,6 @@
                 document.getElementById('password-input').value = '';
             }
         }
-
-        // Cerrar modal al hacer clic fuera
         document.getElementById('modal-admin').addEventListener('click', function(e) {
             if (e.target === this) cerrarModal();
         });
