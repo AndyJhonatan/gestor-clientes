@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Admin - Gestor Clientes v2</title>
+    <title>Panel Admin Pro - Gestor Clientes</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -16,8 +16,8 @@
             --border: #ddd;
             --primary: #667eea;
             --primary-dark: #5568d3;
-            --success: #d4edda;
             --danger: #dc3545;
+            --success: #28a745;
         }
         
         body.dark-mode {
@@ -26,7 +26,6 @@
             --text: #e0e0e0;
             --text-light: #b0b0b0;
             --border: #444;
-            --primary: #667eea;
         }
         
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); transition: 0.3s; }
@@ -36,13 +35,11 @@
         header h1 { font-size: 24px; }
         
         .header-buttons { display: flex; gap: 10px; }
-        .btn-dark-mode { background: rgba(255,255,255,0.2); padding: 8px 16px; border: 1px solid white; color: white; border-radius: 6px; cursor: pointer; font-weight: 600; }
-        .btn-dark-mode:hover { background: rgba(255,255,255,0.3); }
-        .logout-btn { background: rgba(255,255,255,0.2); padding: 8px 16px; border: 1px solid white; color: white; border-radius: 6px; cursor: pointer; font-weight: 600; }
-        .logout-btn:hover { background: rgba(255,255,255,0.3); }
+        .btn-dark-mode, .logout-btn { background: rgba(255,255,255,0.2); padding: 8px 16px; border: 1px solid white; color: white; border-radius: 6px; cursor: pointer; font-weight: 600; }
+        .btn-dark-mode:hover, .logout-btn:hover { background: rgba(255,255,255,0.3); }
         
-        .tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-        .tab-btn { padding: 10px 15px; background: var(--bg-card); border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: 0.3s; color: var(--text); }
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; overflow-x: auto; }
+        .tab-btn { padding: 10px 15px; background: var(--bg-card); border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: 0.3s; color: var(--text); white-space: nowrap; }
         .tab-btn.active { background: var(--primary); color: white; }
         
         .content { display: none; }
@@ -50,7 +47,7 @@
         
         .card { background: var(--bg-card); padding: 20px; border-radius: 10px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: 1px solid var(--border); }
         .card h2 { margin-bottom: 15px; color: var(--text); border-bottom: 2px solid var(--border); padding-bottom: 10px; }
-        .card h3 { margin: 15px 0 10px 0; color: var(--text); }
+        .card h3 { margin: 15px 0 10px 0; color: var(--text); font-size: 14px; }
         
         .form-group { margin-bottom: 12px; }
         label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px; color: var(--text); }
@@ -65,6 +62,7 @@
         
         .row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .row.triple { grid-template-columns: 1fr 1fr 1fr; }
+        .row.quad { grid-template-columns: 1fr 1fr 1fr 1fr; }
         
         .table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
         .table th { background: var(--border); padding: 10px; text-align: left; font-weight: 600; border-bottom: 2px solid var(--border); color: var(--text); }
@@ -75,28 +73,37 @@
         .metric-value { font-size: 24px; font-weight: bold; }
         .metric-label { font-size: 11px; opacity: 0.9; margin-top: 5px; }
         
-        .alert { padding: 12px; border-radius: 6px; margin-bottom: 15px; font-size: 12px; background: #d1ecf1; color: #0c5460; }
+        .metric.success { background: linear-gradient(135deg, #28a745 0%, #20c997 100%); }
+        .metric.danger { background: linear-gradient(135deg, #dc3545 0%, #e74c3c 100%); }
         
-        .copy-btn { background: #667eea; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; }
-        .copy-btn:hover { background: #5568d3; }
-        .copy-btn.copied { background: #28a745; }
+        .alert { padding: 12px; border-radius: 6px; margin-bottom: 15px; font-size: 12px; background: #d1ecf1; color: #0c5460; }
         
         .app-type { display: inline-block; padding: 2px 6px; border-radius: 3px; font-size: 10px; font-weight: 600; }
         .app-type.personal { background: #e2e3e5; color: #383d41; }
         .app-type.shared { background: #d1ecf1; color: #0c5460; }
         
-        .correo-item { background: var(--border); padding: 8px; border-radius: 4px; margin: 4px 0; display: flex; justify-content: space-between; align-items: center; }
-        
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
         .modal.active { display: flex; }
-        .modal-content { background: var(--bg-card); padding: 30px; border-radius: 10px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; }
+        .modal-content { background: var(--bg-card); padding: 30px; border-radius: 10px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; }
         .modal-content h2 { margin-bottom: 20px; color: var(--text); }
         .modal-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
         .modal-buttons button { margin: 0; }
         
+        .portapapeles-item { background: var(--border); padding: 10px; margin: 8px 0; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; }
+        .portapapeles-texto { flex: 1; margin-right: 10px; word-break: break-word; }
+        .copy-btn { background: #667eea; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; }
+        .copy-btn:hover { background: #5568d3; }
+        
+        .ganancia-item { background: var(--border); padding: 12px; margin: 10px 0; border-radius: 6px; }
+        .ganancia-item h4 { color: var(--text); margin-bottom: 8px; }
+        .ganancia-detalles { font-size: 12px; color: var(--text-light); }
+        
+        .resumen-mes { background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%); padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid var(--primary); }
+        
         @media (max-width: 768px) {
             .row { grid-template-columns: 1fr; }
             .row.triple { grid-template-columns: 1fr; }
+            .row.quad { grid-template-columns: 1fr 1fr; }
             header { flex-direction: column; text-align: center; }
         }
     </style>
@@ -105,7 +112,7 @@
     <div class="container">
         <header>
             <div>
-                <h1>👨‍💼 Panel Admin v2.0</h1>
+                <h1>👨‍💼 Panel Admin Pro v3.0</h1>
                 <p>🟢 Conectado en tiempo real</p>
             </div>
             <div class="header-buttons">
@@ -119,11 +126,13 @@
             <button class="tab-btn" onclick="tab('apps')">Apps</button>
             <button class="tab-btn" onclick="tab('clientes')">Clientes</button>
             <button class="tab-btn" onclick="tab('asignar')">Asignar</button>
+            <button class="tab-btn" onclick="tab('ganancias')">Ganancias</button>
+            <button class="tab-btn" onclick="tab('portapapeles')">Portapapeles</button>
         </div>
 
         <!-- INICIO -->
         <div id="inicio" class="content active">
-            <div class="row triple">
+            <div class="row quad">
                 <div class="metric">
                     <div class="metric-value" id="total-clientes">0</div>
                     <div class="metric-label">Total Clientes</div>
@@ -132,17 +141,26 @@
                     <div class="metric-value" id="total-apps">0</div>
                     <div class="metric-label">Apps Activas</div>
                 </div>
-                <div class="metric">
-                    <div class="metric-value" id="ingreso-total">S/ 0</div>
-                    <div class="metric-label">Ingreso Mensual</div>
+                <div class="metric success">
+                    <div class="metric-value" id="ingreso-mes">S/ 0</div>
+                    <div class="metric-label">Ingresos Este Mes</div>
                 </div>
+                <div class="metric danger">
+                    <div class="metric-value" id="inversion-mes">S/ 0</div>
+                    <div class="metric-label">Inversión Este Mes</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>📊 Resumen de Ganancias Este Mes</h2>
+                <div class="resumen-mes" id="resumen-mes-container"></div>
             </div>
 
             <div class="card">
                 <h2>👥 Clientes Recientes</h2>
                 <table class="table">
                     <thead>
-                        <tr><th>Nombre</th><th>Teléfono</th><th>App</th><th>Correo</th><th>Inicio</th><th>Pago</th></tr>
+                        <tr><th>Nombre</th><th>App</th><th>Correo</th><th>Inicio</th><th>Pago</th></tr>
                     </thead>
                     <tbody id="clientes-recientes"></tbody>
                 </table>
@@ -151,14 +169,14 @@
 
         <!-- APPS -->
         <div id="apps" class="content">
-            <div class="alert">📌 Crea y gestiona tus apps aquí. Diferencia entre personales y compartidas.</div>
+            <div class="alert">📌 Gestiona tus apps con inversión mensual.</div>
 
             <div class="card">
                 <h2>➕ Crear Nueva App</h2>
                 <div class="row">
                     <div class="form-group">
                         <label>Nombre de la app *</label>
-                        <input type="text" id="app-nombre" placeholder="Netflix, Disney, ChatGPT...">
+                        <input type="text" id="app-nombre" placeholder="Netflix, Disney...">
                     </div>
                     <div class="form-group">
                         <label>Tipo *</label>
@@ -168,14 +186,22 @@
                         </select>
                     </div>
                 </div>
-                <div class="row">
+                <div class="row quad">
                     <div class="form-group">
-                        <label>Precio (S/)</label>
+                        <label>Precio/Cliente (S/)</label>
                         <input type="number" id="app-precio" value="10" min="1">
                     </div>
                     <div class="form-group">
-                        <label>Cupos (si es compartida)</label>
+                        <label>Cupos</label>
                         <input type="number" id="app-cupos" value="18" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label>Inversión Mensual (S/) *</label>
+                        <input type="number" id="app-inversion" value="78" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha de Pago *</label>
+                        <input type="date" id="app-fecha-pago">
                     </div>
                 </div>
                 <button onclick="agregarApp()" style="width: 100%;">✅ Crear App</button>
@@ -185,7 +211,7 @@
                 <h2>📱 Mis Apps</h2>
                 <table class="table">
                     <thead>
-                        <tr><th>App</th><th>Tipo</th><th>Precio</th><th>Cupos</th><th>Clientes</th><th>Acción</th></tr>
+                        <tr><th>App</th><th>Tipo</th><th>Precio</th><th>Cupos</th><th>Inversión</th><th>F. Pago</th><th>Clientes</th><th>Acción</th></tr>
                     </thead>
                     <tbody id="apps-tabla"></tbody>
                 </table>
@@ -194,10 +220,10 @@
 
         <!-- CLIENTES -->
         <div id="clientes" class="content">
-            <div class="alert">👥 Agregar clientes manualmente o ver los registrados.</div>
+            <div class="alert">👥 Agrega y gestiona clientes.</div>
 
             <div class="card">
-                <h2>➕ Agregar Cliente Manualmente</h2>
+                <h2>➕ Agregar Cliente</h2>
                 <div class="row">
                     <div class="form-group">
                         <label>Nombre *</label>
@@ -211,12 +237,12 @@
                 <div class="row">
                     <div class="form-group">
                         <label>App *</label>
-                        <select id="add-app">
+                        <select id="add-app" onchange="actualizarCorreosAdd()">
                             <option value="">--Selecciona--</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Correo (si es compartida)</label>
+                        <label>Correo (compartida)</label>
                         <select id="add-correo">
                             <option value="">--Selecciona--</option>
                         </select>
@@ -224,7 +250,7 @@
                 </div>
                 <div class="row">
                     <div class="form-group">
-                        <label>Fecha Inicio</label>
+                        <label>Fecha Inicio *</label>
                         <input type="date" id="add-fecha-inicio">
                     </div>
                     <div class="form-group">
@@ -239,7 +265,7 @@
                 <h2>👥 Todos los Clientes</h2>
                 <table class="table">
                     <thead>
-                        <tr><th>Nombre</th><th>Teléfono</th><th>App</th><th>Correo</th><th>Inicio</th><th>Pago</th><th>WhatsApp</th><th>Acción</th></tr>
+                        <tr><th>Nombre</th><th>Tel</th><th>App</th><th>Correo</th><th>Inicio</th><th>Pago</th><th>WhatsApp</th><th>Acción</th></tr>
                     </thead>
                     <tbody id="clientes-tabla"></tbody>
                 </table>
@@ -248,7 +274,7 @@
 
         <!-- ASIGNAR -->
         <div id="asignar" class="content">
-            <div class="alert">🔗 Asigna apps a clientes o mira los clientes por app.</div>
+            <div class="alert">🔗 Asigna apps y correos a clientes.</div>
 
             <div class="card">
                 <h2>🔗 Asignar App a Cliente</h2>
@@ -268,7 +294,7 @@
                 </div>
                 <div class="row">
                     <div class="form-group">
-                        <label>Correo (si es compartida)</label>
+                        <label>Correo (compartida)</label>
                         <select id="correo-select">
                             <option value="">--Selecciona--</option>
                         </select>
@@ -285,31 +311,63 @@
                 <h2>📱 Ver Clientes por App</h2>
                 <div class="form-group">
                     <label>Selecciona una app *</label>
-                    <select id="app-filter" onchange="filtrarClientesPorApp()">
-                        <option value="">--Todas--</option>
+                    <select id="app-filter" onchange="abrirClientesPorApp()">
+                        <option value="">--Selecciona--</option>
                     </select>
                 </div>
-                <table class="table">
-                    <thead>
-                        <tr><th>Nombre</th><th>Teléfono</th><th>Correo</th><th>Pago</th><th>WhatsApp</th></tr>
-                    </thead>
-                    <tbody id="clientes-por-app"></tbody>
-                </table>
             </div>
+        </div>
+
+        <!-- GANANCIAS -->
+        <div id="ganancias" class="content">
+            <div class="alert">💰 Análisis detallado de ganancias por app.</div>
+
+            <div class="card">
+                <h2>📊 Ganancias por App</h2>
+                <div id="ganancias-container"></div>
+            </div>
+        </div>
+
+        <!-- PORTAPAPELES -->
+        <div id="portapapeles" class="content">
+            <div class="alert">📋 Crea y gestiona mensajes para copiar rápidamente.</div>
+
+            <div class="card">
+                <h2>➕ Agregar Mensaje</h2>
+                <div class="form-group">
+                    <label>Mensaje *</label>
+                    <textarea id="nuevo-mensaje" placeholder="Escribe el mensaje que deseas guardar..." rows="4" style="resize: vertical;"></textarea>
+                </div>
+                <button onclick="agregarMensaje()" style="width: 100%;">➕ Guardar Mensaje</button>
+            </div>
+
+            <div class="card">
+                <h2>📋 Mis Mensajes</h2>
+                <div id="portapapeles-lista"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL CLIENTES POR APP -->
+    <div id="modal-clientes-app" class="modal">
+        <div class="modal-content">
+            <h2>👥 Clientes de: <span id="modal-app-name"></span></h2>
+            <div id="clientes-app-list"></div>
+            <button onclick="cerrarModalClientesApp()" style="width: 100%; margin-top: 20px; background: #6c757d;">Cerrar</button>
         </div>
     </div>
 
     <!-- MODAL CORREOS -->
     <div id="modal-correos" class="modal">
         <div class="modal-content">
-            <h2>📧 Gestionar Correos: <span id="modal-app-name"></span></h2>
+            <h2>📧 Correos: <span id="modal-app-name-correos"></span></h2>
             <div id="correos-list"></div>
-            <div class="form-group">
-                <label>Agregar nuevo correo *</label>
+            <div class="form-group" style="margin-top: 20px;">
+                <label>Nuevo correo *</label>
                 <input type="email" id="nuevo-correo" placeholder="usuario@gmail.com">
             </div>
-            <button onclick="agregarCorreo()" style="width: 100%; margin-top: 10px;">➕ Agregar</button>
-            <button onclick="cerrarModalCorreos()" style="width: 100%; margin-top: 10px; background: #6c757d;">Cerrar</button>
+            <button onclick="agregarCorreo()" style="width: 100%; margin-bottom: 10px;">➕ Agregar</button>
+            <button onclick="cerrarModalCorreos()" style="width: 100%; background: #6c757d;">Cerrar</button>
         </div>
     </div>
 
@@ -324,6 +382,7 @@
         let apps = [];
         let clientes = [];
         let appCorreos = {};
+        let mensajes = [];
         let appSeleccionadaParaCorreos = null;
 
         function toggleDarkMode() {
@@ -333,6 +392,11 @@
 
         if (localStorage.getItem('darkMode') === 'true') {
             document.body.classList.add('dark-mode');
+        }
+
+        function setHoyEnInput(inputId) {
+            const hoy = new Date().toISOString().split('T')[0];
+            document.getElementById(inputId).value = hoy;
         }
 
         async function cargarDatos() {
@@ -346,11 +410,11 @@
                 clientes = clientesData || [];
 
                 appCorreos = JSON.parse(localStorage.getItem('appCorreos')) || {};
+                mensajes = JSON.parse(localStorage.getItem('mensajes')) || [];
 
                 actualizar();
             } catch (err) {
                 console.error('Error:', err);
-                alert('Error conectando a la base de datos');
             }
         }
 
@@ -361,11 +425,50 @@
             event.target.classList.add('active');
         }
 
+        function obtenerMesActual() {
+            const hoy = new Date();
+            return { año: hoy.getFullYear(), mes: hoy.getMonth() + 1 };
+        }
+
+        function calcularGanancia(app) {
+            const clientesApp = clientes.filter(c => c.app_id === app.id);
+            const gananciaTotal = clientesApp.reduce((sum, c) => sum + app.precio, 0);
+            return gananciaTotal;
+        }
+
+        function calcularInversionYGanancia() {
+            const { año, mes } = obtenerMesActual();
+            let inversionTotal = 0;
+            let ingresoTotal = 0;
+
+            apps.forEach(app => {
+                const fechaPago = new Date(app.fecha_pago);
+                if (fechaPago.getFullYear() === año && fechaPago.getMonth() + 1 === mes) {
+                    inversionTotal += app.inversion || 0;
+                }
+                
+                const clientesApp = clientes.filter(c => c.app_id === app.id);
+                clientesApp.forEach(c => {
+                    if (c.fecha_pago) {
+                        const clientePago = new Date(c.fecha_pago);
+                        if (clientePago.getFullYear() === año && clientePago.getMonth() + 1 === mes) {
+                            ingresoTotal += app.precio;
+                        }
+                    }
+                });
+            });
+
+            return { inversion: inversionTotal, ingreso: ingresoTotal, ganancia: ingresoTotal - inversionTotal };
+        }
+
         async function agregarApp() {
             const nombre = document.getElementById('app-nombre').value.trim();
             const tipo = document.getElementById('app-tipo').value;
-            if (!nombre) {
-                alert('⚠️ Completa el nombre');
+            const inversion = parseFloat(document.getElementById('app-inversion').value) || 0;
+            const fechaPago = document.getElementById('app-fecha-pago').value;
+
+            if (!nombre || !fechaPago) {
+                alert('⚠️ Completa todos los campos');
                 return;
             }
 
@@ -374,7 +477,9 @@
                     nombre,
                     tipo,
                     precio: parseInt(document.getElementById('app-precio').value) || 10,
-                    cupos: tipo === 'shared' ? parseInt(document.getElementById('app-cupos').value) || 18 : null
+                    cupos: parseInt(document.getElementById('app-cupos').value) || 18,
+                    inversion,
+                    fecha_pago: fechaPago
                 }]);
 
                 if (error) throw error;
@@ -383,6 +488,8 @@
                 document.getElementById('app-tipo').value = 'personal';
                 document.getElementById('app-precio').value = '10';
                 document.getElementById('app-cupos').value = '18';
+                document.getElementById('app-inversion').value = '78';
+                document.getElementById('app-fecha-pago').value = '';
 
                 alert('✅ App creada');
                 cargarDatos();
@@ -396,11 +503,11 @@
             const nombre = document.getElementById('add-nombre').value.trim();
             const telefono = document.getElementById('add-telefono').value.trim();
             const appId = document.getElementById('add-app').value;
-            const correo = document.getElementById('add-correo').value;
+            const correo = document.getElementById('add-correo').value || null;
             const fechaInicio = document.getElementById('add-fecha-inicio').value;
-            const fechaPago = document.getElementById('add-fecha-pago').value;
+            const fechaPago = document.getElementById('add-fecha-pago').value || null;
 
-            if (!nombre || !telefono || !appId) {
+            if (!nombre || !telefono || !appId || !fechaInicio) {
                 alert('⚠️ Completa los campos requeridos');
                 return;
             }
@@ -413,10 +520,10 @@
                     telefono,
                     app: app.nombre,
                     app_id: appId,
-                    correo: correo || null,
+                    correo: correo,
                     wa_link: `https://wa.me/${telefono.replace(/[^0-9]/g, '')}`,
-                    fecha_inicio: fechaInicio || null,
-                    fecha_pago: fechaPago || null,
+                    fecha_inicio: fechaInicio,
+                    fecha_pago: fechaPago,
                     fecha_registro: new Date().toISOString()
                 }]);
 
@@ -434,6 +541,23 @@
             } catch (err) {
                 console.error('Error:', err);
                 alert('❌ Error al agregar cliente');
+            }
+        }
+
+        function actualizarCorreosAdd() {
+            const appId = document.getElementById('add-app').value;
+            const correosSelect = document.getElementById('add-correo');
+            
+            correosSelect.innerHTML = '<option value="">--Selecciona--</option>';
+
+            if (appId) {
+                const correosList = appCorreos[appId] || [];
+                correosList.forEach(correo => {
+                    const option = document.createElement('option');
+                    option.value = correo;
+                    option.textContent = correo;
+                    correosSelect.appendChild(option);
+                });
             }
         }
 
@@ -457,8 +581,8 @@
         async function asignarApp() {
             const clienteId = document.getElementById('cliente-select').value;
             const appId = document.getElementById('app-select').value;
-            const correo = document.getElementById('correo-select').value;
-            const fechaPago = document.getElementById('asign-fecha-pago').value;
+            const correo = document.getElementById('correo-select').value || null;
+            const fechaPago = document.getElementById('asign-fecha-pago').value || null;
 
             if (!clienteId || !appId) {
                 alert('⚠️ Selecciona cliente y app');
@@ -475,8 +599,8 @@
                         .update({ 
                             app: app.nombre,
                             app_id: appId,
-                            correo: correo || null,
-                            fecha_pago: fechaPago || null
+                            correo: correo,
+                            fecha_pago: fechaPago
                         })
                         .eq('id', cliente.id);
 
@@ -490,104 +614,69 @@
             }
         }
 
-        function filtrarClientesPorApp() {
+        function abrirClientesPorApp() {
             const appId = document.getElementById('app-filter').value;
-            const tbody = document.getElementById('clientes-por-app');
-
-            let filtrados = clientes;
-            if (appId) {
-                filtrados = clientes.filter(c => c.app_id == appId);
+            
+            if (!appId) {
+                alert('⚠️ Selecciona una app');
+                return;
             }
 
-            if (filtrados.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color: var(--text-light);">Sin clientes</td></tr>';
-            } else {
-                tbody.innerHTML = filtrados.map(c => `<tr>
-                    <td>${c.nombre}</td>
-                    <td>${c.telefono}</td>
-                    <td>${c.correo || '-'}</td>
-                    <td>${c.fecha_pago ? new Date(c.fecha_pago).toLocaleDateString() : '-'}</td>
-                    <td><a href="${c.wa_link}" style="color: #25d366; text-decoration: none;" target="_blank">💬 Abrir</a></td>
-                </tr>`).join('');
-            }
+            const app = apps.find(a => a.id == appId);
+            mostrarClientesPorAppYCorreo(appId, app.nombre);
         }
 
-        function renderApps() {
-            const tbody = document.getElementById('apps-tabla');
-            const select = document.getElementById('add-app');
-            const selectFilter = document.getElementById('app-filter');
-            const appSelect = document.getElementById('app-select');
+        function mostrarClientesPorAppYCorreo(appId, appName) {
+            document.getElementById('modal-app-name').textContent = appName;
+            const clientesApp = clientes.filter(c => c.app_id == appId);
+            const correos = appCorreos[appId] || [];
 
-            if (apps.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color: var(--text-light);">Sin apps</td></tr>';
-                select.innerHTML = '<option value="">--Selecciona--</option>';
+            let html = '';
+
+            if (correos.length === 0 && clientesApp.length === 0) {
+                html = '<p style="text-align: center; color: var(--text-light);">No hay datos para esta app</p>';
+            } else if (correos.length === 0) {
+                html = '<p style="text-align: center; color: var(--text-light);">No hay correos registrados. Muestra los clientes por defecto.</p>';
+                clientesApp.forEach(c => {
+                    html += `<div class="ganancia-item">
+                        <strong>${c.nombre}</strong> - ${c.telefono}
+                        <div class="ganancia-detalles">
+                            Inicio: ${new Date(c.fecha_inicio).toLocaleDateString()} | 
+                            Pago: ${c.fecha_pago ? new Date(c.fecha_pago).toLocaleDateString() : 'No asignado'}
+                        </div>
+                    </div>`;
+                });
             } else {
-                tbody.innerHTML = apps.map(a => {
-                    const clientesApp = clientes.filter(c => c.app_id === a.id).length;
-                    return `<tr>
-                        <td><strong>${a.nombre}</strong></td>
-                        <td><span class="app-type ${a.tipo}">${a.tipo.toUpperCase()}</span></td>
-                        <td>S/ ${a.precio}</td>
-                        <td>${a.cupos || '-'}</td>
-                        <td>${clientesApp}</td>
-                        <td>
-                            ${a.tipo === 'shared' ? `<button class="small" onclick="abrirModalCorreos(${a.id}, '${a.nombre}')">📧</button>` : ''}
-                            <button class="small danger" onclick="eliminarApp(${a.id})">🗑️</button>
-                        </td>
-                    </tr>`;
-                }).join('');
-
-                select.innerHTML = '<option value="">--Selecciona--</option>' +
-                    apps.map(a => `<option value="${a.id}">${a.nombre}</option>`).join('');
-                selectFilter.innerHTML = '<option value="">--Todas--</option>' +
-                    apps.map(a => `<option value="${a.id}">${a.nombre}</option>`).join('');
-                appSelect.innerHTML = '<option value="">--Selecciona--</option>' +
-                    apps.map(a => `<option value="${a.id}">${a.nombre}</option>`).join('');
+                correos.forEach(correo => {
+                    const clientesDelCorreo = clientesApp.filter(c => c.correo === correo);
+                    html += `<div class="ganancia-item" style="border-left: 4px solid #667eea;">
+                        <h4>📧 ${correo} (${clientesDelCorreo.length} clientes)</h4>`;
+                    
+                    if (clientesDelCorreo.length === 0) {
+                        html += '<p style="color: var(--text-light); font-size: 12px;">Sin clientes asignados</p>';
+                    } else {
+                        clientesDelCorreo.forEach(c => {
+                            html += `<div style="background: var(--bg); padding: 8px; margin: 5px 0; border-radius: 4px; font-size: 12px;">
+                                <strong>${c.nombre}</strong> - ${c.telefono}
+                                <br><small>Inicio: ${new Date(c.fecha_inicio).toLocaleDateString()} | Pago: ${c.fecha_pago ? new Date(c.fecha_pago).toLocaleDateString() : 'No asignado'}</small>
+                            </div>`;
+                        });
+                    }
+                    html += '</div>';
+                });
             }
 
-            document.getElementById('total-apps').textContent = apps.length;
+            document.getElementById('clientes-app-list').innerHTML = html;
+            document.getElementById('modal-clientes-app').classList.add('active');
         }
 
-        function renderClientes() {
-            const tbody = document.getElementById('clientes-tabla');
-            const recientes = document.getElementById('clientes-recientes');
-            const select = document.getElementById('cliente-select');
-
-            if (clientes.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color: var(--text-light);">Sin clientes</td></tr>';
-                recientes.innerHTML = '<tr><td colspan="6" style="text-align:center;color: var(--text-light);">Sin clientes</td></tr>';
-                select.innerHTML = '<option value="">--Selecciona--</option>';
-            } else {
-                tbody.innerHTML = clientes.map(c => `<tr>
-                    <td>${c.nombre}</td>
-                    <td>${c.telefono}</td>
-                    <td>${c.app}</td>
-                    <td>${c.correo || '-'}</td>
-                    <td>${c.fecha_inicio ? new Date(c.fecha_inicio).toLocaleDateString() : '-'}</td>
-                    <td>${c.fecha_pago ? new Date(c.fecha_pago).toLocaleDateString() : '-'}</td>
-                    <td><a href="${c.wa_link}" style="color: #25d366; text-decoration: none;" target="_blank">💬 Abrir</a></td>
-                    <td><button class="small danger" onclick="eliminarCliente(${c.id})">🗑️</button></td>
-                </tr>`).join('');
-
-                recientes.innerHTML = clientes.slice(-5).reverse().map(c => `<tr>
-                    <td>${c.nombre}</td>
-                    <td>${c.telefono}</td>
-                    <td>${c.app}</td>
-                    <td>${c.correo || '-'}</td>
-                    <td>${c.fecha_inicio ? new Date(c.fecha_inicio).toLocaleDateString() : '-'}</td>
-                    <td>${c.fecha_pago ? new Date(c.fecha_pago).toLocaleDateString() : '-'}</td>
-                </tr>`).join('');
-
-                select.innerHTML = '<option value="">--Selecciona--</option>' +
-                    clientes.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
-            }
-
-            document.getElementById('total-clientes').textContent = clientes.length;
+        function cerrarModalClientesApp() {
+            document.getElementById('modal-clientes-app').classList.remove('active');
         }
 
         function abrirModalCorreos(appId, appName) {
             appSeleccionadaParaCorreos = appId;
-            document.getElementById('modal-app-name').textContent = appName;
+            document.getElementById('modal-app-name-correos').textContent = appName;
             renderCorreos();
             document.getElementById('modal-correos').classList.add('active');
         }
@@ -602,10 +691,10 @@
             const correos = appCorreos[appSeleccionadaParaCorreos] || [];
 
             if (correos.length === 0) {
-                list.innerHTML = '<p style="color: var(--text-light); text-align: center;">Sin correos agregados</p>';
+                list.innerHTML = '<p style="color: var(--text-light); text-align: center;">Sin correos</p>';
             } else {
-                list.innerHTML = correos.map((correo, idx) => `<div class="correo-item">
-                    <span>${correo}</span>
+                list.innerHTML = correos.map((correo, idx) => `<div class="portapapeles-item">
+                    <span class="portapapeles-texto">${correo}</span>
                     <button class="small danger" onclick="eliminarCorreo(${idx})">🗑️</button>
                 </div>`).join('');
             }
@@ -639,16 +728,187 @@
             }
         }
 
+        function agregarMensaje() {
+            const texto = document.getElementById('nuevo-mensaje').value.trim();
+
+            if (!texto) {
+                alert('⚠️ Escribe un mensaje');
+                return;
+            }
+
+            mensajes.push({
+                id: Date.now(),
+                texto,
+                fecha: new Date().toLocaleDateString()
+            });
+
+            localStorage.setItem('mensajes', JSON.stringify(mensajes));
+            document.getElementById('nuevo-mensaje').value = '';
+            renderMensajes();
+            alert('✅ Mensaje guardado');
+        }
+
+        function renderMensajes() {
+            const container = document.getElementById('portapapeles-lista');
+
+            if (mensajes.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: var(--text-light);">Sin mensajes guardados</p>';
+            } else {
+                container.innerHTML = mensajes.map(msg => `<div class="portapapeles-item">
+                    <div style="flex: 1;">
+                        <div class="portapapeles-texto">${msg.texto}</div>
+                        <small style="color: var(--text-light);">${msg.fecha}</small>
+                    </div>
+                    <button class="copy-btn" onclick="copiarMensaje('${msg.texto.replace(/'/g, "\\'")}')">📋 Copiar</button>
+                    <button class="small danger" style="margin-left: 5px;" onclick="eliminarMensaje(${msg.id})">🗑️</button>
+                </div>`).join('');
+            }
+        }
+
+        function copiarMensaje(texto) {
+            navigator.clipboard.writeText(texto).then(() => {
+                alert('✅ Copiado al portapapeles');
+            });
+        }
+
+        function eliminarMensaje(id) {
+            if (confirm('¿Eliminar mensaje?')) {
+                mensajes = mensajes.filter(m => m.id !== id);
+                localStorage.setItem('mensajes', JSON.stringify(mensajes));
+                renderMensajes();
+            }
+        }
+
+        function renderApps() {
+            const tbody = document.getElementById('apps-tabla');
+            const select = document.getElementById('add-app');
+            const selectFilter = document.getElementById('app-filter');
+            const appSelect = document.getElementById('app-select');
+
+            if (apps.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">Sin apps</td></tr>';
+            } else {
+                tbody.innerHTML = apps.map(a => {
+                    const clientesApp = clientes.filter(c => c.app_id === a.id).length;
+                    const ganancia = calcularGanancia(a);
+                    const diferencia = ganancia - (a.inversion || 0);
+                    return `<tr>
+                        <td><strong>${a.nombre}</strong></td>
+                        <td><span class="app-type ${a.tipo}">${a.tipo.toUpperCase()}</span></td>
+                        <td>S/ ${a.precio}</td>
+                        <td>${a.cupos || '-'}</td>
+                        <td>S/ ${a.inversion || 0}</td>
+                        <td>${new Date(a.fecha_pago).toLocaleDateString()}</td>
+                        <td><button class="small" onclick="document.getElementById('app-filter').value='${a.id}'; abrirClientesPorApp()">${clientesApp}</button></td>
+                        <td>
+                            <button class="small" onclick="abrirModalCorreos(${a.id}, '${a.nombre}')">📧</button>
+                            <button class="small danger" onclick="eliminarApp(${a.id})">🗑️</button>
+                        </td>
+                    </tr>`;
+                }).join('');
+            }
+
+            select.innerHTML = '<option value="">--Selecciona--</option>' +
+                apps.map(a => `<option value="${a.id}">${a.nombre}</option>`).join('');
+            selectFilter.innerHTML = '<option value="">--Selecciona--</option>' +
+                apps.map(a => `<option value="${a.id}">${a.nombre}</option>`).join('');
+            appSelect.innerHTML = '<option value="">--Selecciona--</option>' +
+                apps.map(a => `<option value="${a.id}">${a.nombre}</option>`).join('');
+        }
+
+        function renderClientes() {
+            const tbody = document.getElementById('clientes-tabla');
+            const recientes = document.getElementById('clientes-recientes');
+            const select = document.getElementById('cliente-select');
+
+            if (clientes.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">Sin clientes</td></tr>';
+                recientes.innerHTML = '<tr><td colspan="5" style="text-align:center;">Sin clientes</td></tr>';
+            } else {
+                tbody.innerHTML = clientes.map(c => `<tr>
+                    <td>${c.nombre}</td>
+                    <td>${c.telefono}</td>
+                    <td>${c.app}</td>
+                    <td>${c.correo || '-'}</td>
+                    <td>${c.fecha_inicio ? new Date(c.fecha_inicio).toLocaleDateString() : '-'}</td>
+                    <td>${c.fecha_pago ? new Date(c.fecha_pago).toLocaleDateString() : '-'}</td>
+                    <td><a href="${c.wa_link}" style="color: #25d366;" target="_blank">💬</a></td>
+                    <td><button class="small danger" onclick="eliminarCliente(${c.id})">🗑️</button></td>
+                </tr>`).join('');
+
+                recientes.innerHTML = clientes.slice(-5).reverse().map(c => `<tr>
+                    <td>${c.nombre}</td>
+                    <td>${c.app}</td>
+                    <td>${c.correo || '-'}</td>
+                    <td>${c.fecha_inicio ? new Date(c.fecha_inicio).toLocaleDateString() : '-'}</td>
+                    <td>${c.fecha_pago ? new Date(c.fecha_pago).toLocaleDateString() : '-'}</td>
+                </tr>`).join('');
+            }
+
+            select.innerHTML = '<option value="">--Selecciona--</option>' +
+                clientes.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
+        }
+
+        function renderGanancias() {
+            const container = document.getElementById('ganancias-container');
+            let html = '';
+
+            apps.forEach(app => {
+                const clientesApp = clientes.filter(c => c.app_id === app.id);
+                const gananciaTotal = clientesApp.reduce((sum, c) => sum + app.precio, 0);
+                const diferencia = gananciaTotal - (app.inversion || 0);
+
+                html += `<div class="ganancia-item">
+                    <h4>${app.nombre} <span class="app-type ${app.tipo}">${app.tipo}</span></h4>
+                    <div class="ganancia-detalles">
+                        <strong>Clientes:</strong> ${clientesApp.length} | 
+                        <strong>Ingresos:</strong> S/ ${gananciaTotal} | 
+                        <strong>Inversión:</strong> S/ ${app.inversion || 0} | 
+                        <strong>Ganancia Neta:</strong> <span style="color: ${diferencia >= 0 ? '#28a745' : '#dc3545'};">S/ ${diferencia}</span>
+                        <br><small>F. Pago: ${new Date(app.fecha_pago).toLocaleDateString()}</small>
+                    </div>
+                </div>`;
+            });
+
+            if (apps.length === 0) {
+                html = '<p style="text-align: center; color: var(--text-light);">Sin apps</p>';
+            }
+
+            container.innerHTML = html;
+        }
+
+        function actualizarDashboard() {
+            const { inversion, ingreso, ganancia } = calcularInversionYGanancia();
+
+            document.getElementById('ingreso-mes').textContent = 'S/ ' + ingreso;
+            document.getElementById('inversion-mes').textContent = 'S/ ' + inversion;
+
+            let resumenHtml = `
+                <strong>💰 Este Mes:</strong><br>
+                Ingresos: <span style="color: #28a745;">S/ ${ingreso}</span> | 
+                Inversión: <span style="color: #dc3545;">S/ ${inversion}</span> | 
+                Ganancia Neta: <span style="color: ${ganancia >= 0 ? '#28a745' : '#dc3545'}; font-weight: bold;">S/ ${ganancia}</span>
+            `;
+
+            document.getElementById('resumen-mes-container').innerHTML = resumenHtml;
+        }
+
+        function actualizar() {
+            renderApps();
+            renderClientes();
+            renderMensajes();
+            renderGanancias();
+            actualizarDashboard();
+        }
+
         async function eliminarApp(id) {
             if (confirm('¿Eliminar?')) {
                 try {
                     const { error } = await db.from('apps').delete().eq('id', id);
                     if (error) throw error;
-                    delete appCorreos[id];
-                    localStorage.setItem('appCorreos', JSON.stringify(appCorreos));
                     cargarDatos();
                 } catch (err) {
-                    alert('❌ Error al eliminar');
+                    alert('❌ Error');
                 }
             }
         }
@@ -660,24 +920,9 @@
                     if (error) throw error;
                     cargarDatos();
                 } catch (err) {
-                    alert('❌ Error al eliminar');
+                    alert('❌ Error');
                 }
             }
-        }
-
-        function actualizarDashboard() {
-            const ingresoTotal = clientes.reduce((sum, c) => {
-                const app = apps.find(a => a.id === c.app_id);
-                return sum + (app ? app.precio : 0);
-            }, 0);
-            document.getElementById('ingreso-total').textContent = 'S/ ' + ingresoTotal;
-        }
-
-        function actualizar() {
-            renderApps();
-            renderClientes();
-            filtrarClientesPorApp();
-            actualizarDashboard();
         }
 
         function logout() {
@@ -687,6 +932,11 @@
         }
 
         cargarDatos();
+        setHoyEnInput('add-fecha-inicio');
+        setHoyEnInput('app-fecha-pago');
     </script>
 </body>
 </html>
+```
+
+**Ahora copia ESTE CÓDIGO COMPLETO a GitHub en `admin.html` y recarga Vercel** 👇
